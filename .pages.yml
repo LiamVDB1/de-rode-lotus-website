@@ -34,7 +34,7 @@ content:
       - name: heroPhoto
         label: "Grote foto"
         type: image
-        description: "Upload alleen een echte foto waarvoor De Rode Lotus publicatierechten heeft."
+        description: "Zolang dit leeg is, toont de werkversie de huidige voorbeeldfoto. Upload een echte foto met publicatierechten."
       - name: heroPhotoAlt
         label: "Beschrijf de grote foto"
         type: string
@@ -63,7 +63,7 @@ content:
       - name: storyPhoto
         label: "Foto ontmoetingsplek"
         type: image
-        description: "Upload alleen een echte foto waarvoor De Rode Lotus publicatierechten heeft."
+        description: "Zolang dit leeg is, toont de werkversie de huidige voorbeeldfoto. Upload een echte foto met publicatierechten."
       - name: storyPhotoAlt
         label: "Beschrijf de foto van de ontmoetingsplek"
         type: string
@@ -174,7 +174,7 @@ content:
       - name: photo
         label: "Foto"
         type: image
-        description: "Upload alleen een echte foto waarvoor De Rode Lotus publicatierechten heeft."
+        description: "Bij bestaande activiteiten toont de werkversie een voorbeeldfoto zolang dit leeg is. Upload een echte foto met publicatierechten."
       - name: photoAlt
         label: "Beschrijf de foto"
         type: string
