@@ -1,0 +1,21 @@
+{
+  "name": "de-rode-lotus-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev --host 127.0.0.1",
+    "build": "node scripts/check-content.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "build:public": "node scripts/check-content.mjs && node scripts/check-publication.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview --host 127.0.0.1",
+    "check": "ASTRO_TELEMETRY_DISABLED=1 astro check && node scripts/check-content.mjs",
+    "check:content": "node scripts/check-content.mjs"
+  },
+  "dependencies": {
+    "@fontsource/atkinson-hyperlegible": "^5.2.0",
+    "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.0",
+    "typescript": "^5.0.0"
+  }
+}

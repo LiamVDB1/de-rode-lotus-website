@@ -1,0 +1,34 @@
+[
+  {
+    "title": "Weggeefwinkel",
+    "description": "Kledij en spullen brengen of meenemen — en ondertussen iemand uit de buurt ontmoeten.",
+    "photo": "",
+    "photoAlt": "Kledingrekken in de weggeefwinkel",
+    "linkText": "Hoe werkt het?",
+    "linkTarget": "faq"
+  },
+  {
+    "title": "Voedselbedeling",
+    "description": "Op vrijdag van 10u tot 13u. Voor voedselhulp heb je een doorverwijsbrief nodig.",
+    "photo": "",
+    "photoAlt": "Vrijwilligers verwerken verse voeding",
+    "linkText": "Praktische informatie",
+    "linkTarget": "practical"
+  },
+  {
+    "title": "Spelotheek",
+    "description": "Speelgoed lenen en ontdekken. Vraag ons wanneer je kunt langskomen.",
+    "photo": "",
+    "photoAlt": "Bezoeker bekijkt het aanbod van spellen en boeken",
+    "linkText": "Vraag naar de momenten",
+    "linkTarget": "email"
+  },
+  {
+    "title": "Creatief atelier",
+    "description": "Samen naaien, haken, breien en borduren. Vraag ons wanneer je kunt aansluiten.",
+    "photo": "",
+    "photoAlt": "Creatieve materialen en boeken bij De Rode Lotus",
+    "linkText": "Vraag naar de activiteit",
+    "linkTarget": "email"
+  }
+]

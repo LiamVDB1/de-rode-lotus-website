@@ -1,0 +1,17 @@
+{
+  "street": "Meibloemstraat 18",
+  "postalCode": "9000",
+  "city": "Gent",
+  "neighbourhood": "Brugse Poort–Rooigem",
+  "phoneDisplay": "0479 79 89 69",
+  "phoneInternational": "+32479798969",
+  "email": "derodelotus@outlook.com",
+  "hoursSummary": "Dinsdag, vrijdag en zaterdag",
+  "hoursTitle": "Goed om te weten vóór je komt.",
+  "hoursIntro": "De uren verschillen per activiteit. Twijfel je? Bel ons gerust voor je vertrekt.",
+  "hours": [
+    { "day": "Dinsdag", "time": "10u–12u · 13u–17u", "activity": "Weggeefwinkel en ontmoeting." },
+    { "day": "Vrijdag", "time": "10u–13u", "activity": "Voedselbedeling met doorverwijsbrief." },
+    { "day": "Zaterdag", "time": "10u–12u · 13u–17u", "activity": "Weggeefwinkel en ontmoeting." }
+  ]
+}
