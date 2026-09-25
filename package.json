@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev --host 127.0.0.1",
-    "build": "node scripts/check-content.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
-    "build:public": "node scripts/check-content.mjs && node scripts/check-publication.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "build": "node scripts/check-content.mjs && node scripts/check-cms.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "build:public": "node scripts/check-content.mjs && node scripts/check-cms.mjs && node scripts/check-publication.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview --host 127.0.0.1",
     "check": "ASTRO_TELEMETRY_DISABLED=1 astro check && node scripts/check-content.mjs && node scripts/check-cms.mjs",
     "check:content": "node scripts/check-content.mjs"
