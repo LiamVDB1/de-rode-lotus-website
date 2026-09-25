@@ -89,7 +89,7 @@ const showNotice = notice.enabled && notice.title.trim() && notice.message.trim(
         </div>
       </div>
 
-      {showNotice && <aside class="notice" data-until={notice.until} aria-label="Actuele mededeling"><div><strong>{notice.title}</strong><p>{notice.message}</p></div><button type="button" aria-label="Mededeling sluiten">×</button></aside>}
+      {showNotice && <aside class="notice" data-until={notice.until} aria-label="Actuele mededeling"><div><strong>{notice.title}</strong><p>{notice.message}</p></div><button type="button" aria-label="Mededeling sluiten"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg></button></aside>}
 
       <section class="section" id="wat-we-doen" aria-labelledby="services-title">
         <div class="section-head"><h2 id="services-title">{home.servicesTitle}</h2><p>{home.servicesIntro}</p></div>
