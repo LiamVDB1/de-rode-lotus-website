@@ -3,11 +3,11 @@
 ## Inhoud aanpassen
 
 1. Ga naar [app.pagescms.org](https://app.pagescms.org) en meld je aan met het GitHub-account dat toegang heeft tot deze repository.
-2. Open de repository **de-rode-lotus-website**. Pages CMS leest automatisch `.pages.yml` op de hoofdbranch.
+2. Open de private repository [**LiamVDB1/de-rode-lotus-website**](https://github.com/LiamVDB1/de-rode-lotus-website). Pages CMS leest automatisch `.pages.yml` op de hoofdbranch.
 3. Kies **Startpagina**, **Adres, contact en uren**, **Wat we doen**, **Veelgestelde vragen** of **Actuele mededeling**.
 4. Bewaar de wijziging. Pages CMS schrijft een commit naar GitHub. Controleer daarna of de automatische websitecontrole groen is en, zodra hosting gekoppeld is, of de gepubliceerde site klopt.
 
-Dit is een voorbereid beheerproces. Het is pas daadwerkelijk bruikbaar nadat de private GitHub-repository is aangemaakt, de Pages CMS GitHub App erop is geïnstalleerd en de bevoegde gebruiker is aangemeld.
+De private GitHub-repository bestaat. Het CMS is pas daadwerkelijk bruikbaar nadat de bevoegde gebruiker de GitHub-aanmelding van Pages CMS bewust heeft goedgekeurd en de Pages CMS GitHub App voor deze repository is geïnstalleerd. De aanmelding vraagt een brede [`repo`-scope](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps) voor het gebruikte GitHub-account; neem die toegang bewust in overweging.
 
 ## Foto’s vervangen
 
