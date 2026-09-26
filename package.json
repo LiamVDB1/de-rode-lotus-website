@@ -12,11 +12,12 @@
   },
   "dependencies": {
     "@fontsource/atkinson-hyperlegible": "^5.2.0",
-    "astro": "^5.0.0"
+    "astro": "^7.3.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.0",
     "typescript": "^5.0.0",
+    "wrangler": "^4.141.0",
     "yaml": "^2.9.1"
   }
 }
