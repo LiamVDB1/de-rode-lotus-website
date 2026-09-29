@@ -33,7 +33,7 @@ export async function notifyNewVolunteer(submission: Submission, adminUrl: strin
       to: env.NOTIFY_TO,
       from: { email: env.NOTIFY_FROM, name: 'Website De Rode Lotus' },
       replyTo: submission.email,
-      subject: `Nieuwe vrijwilliger: ${submission.name.slice(0, 60)}`,
+      subject: `Nieuwe vrijwilliger: ${submission.name.replace(/\p{Cc}/gu, ' ').slice(0, 60)}`,
       text: lines.join('\n'),
     });
   } catch (error) {

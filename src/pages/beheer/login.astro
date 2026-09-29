@@ -5,7 +5,7 @@ import '../../styles/admin.css';
 import Logo from '../../components/Logo.astro';
 import { authConfigured, fingerprint, startSession, verifyPassword } from '../../lib/auth';
 import { clientIp, safeReturnUrl, sameOrigin } from '../../lib/http';
-import { recordEvent, underLimit } from '../../lib/ratelimit';
+import { consume, ipScope } from '../../lib/ratelimit';
 
 const WINDOW = 15 * 60;
 const returnUrl = safeReturnUrl(Astro.url.searchParams.get('terug'), Astro.url);
@@ -16,10 +16,12 @@ if (Astro.locals.admin && Astro.request.method === 'GET') return Astro.redirect(
 if (!authConfigured()) {
   error = 'Er is nog geen beheerderswachtwoord ingesteld. Zie BEHEER.md (npm run admin:password).';
 } else if (Astro.request.method === 'POST') {
-  const ipKey = `login:${await fingerprint(clientIp(Astro.request))}`;
-  const allowed = await underLimit([
-    { bucket: ipKey, max: 5, windowSeconds: WINDOW },
-    { bucket: 'login:alle', max: 50, windowSeconds: WINDOW },
+  const ipKey = `login:${await fingerprint(ipScope(clientIp(Astro.request)))}`;
+  // Elke poging telt, ook een geslaagde. De ruime totaalgrens is enkel een noodrem; per adres
+  // blijft het streng, zodat één aanvaller de beheerder niet kan buitensluiten.
+  const allowed = await consume([
+    { bucket: ipKey, max: 10, windowSeconds: WINDOW },
+    { bucket: 'login:alle', max: 500, windowSeconds: WINDOW },
   ]);
   if (!sameOrigin(Astro.request)) {
     error = 'Ongeldig verzoek. Laad de pagina opnieuw.';
@@ -33,7 +35,6 @@ if (!authConfigured()) {
       await startSession(Astro.cookies, Astro.url);
       return Astro.redirect(returnUrl, 303);
     }
-    await recordEvent([ipKey, 'login:alle']);
     Astro.response.status = 401;
     error = 'Dat wachtwoord klopt niet.';
   }

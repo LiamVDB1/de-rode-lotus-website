@@ -165,7 +165,7 @@ export function formatIssues(error: z.ZodError): { path: string; message: string
 
 /** Aanmelding via het formulier op /vrijwilligers. */
 export const volunteerSchema = z.object({
-  name: text('Naam', 80),
+  name: text('Naam', 80).refine((value) => !/\p{Cc}/u.test(value), 'Naam bevat ongeldige tekens.'),
   email: z.email('Vul een geldig e-mailadres in.').max(200),
   phone: z.string().trim().max(30, 'Telefoonnummer is te lang.').refine((value) => value === '' || /^[+\d][\d\s./-]{5,}$/.test(value), 'Telefoonnummer klopt niet.'),
   availability: optionalText(300),

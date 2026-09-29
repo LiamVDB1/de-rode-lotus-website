@@ -3,7 +3,7 @@ import { env } from 'cloudflare:workers';
 import { fingerprint } from '../../lib/auth';
 import { clientIp, json, problem, sameOrigin } from '../../lib/http';
 import { notifyNewVolunteer } from '../../lib/notify';
-import { recordEvent, underLimit } from '../../lib/ratelimit';
+import { ipScope, recordEvent, underLimit } from '../../lib/ratelimit';
 import { formatIssues, volunteerSchema } from '../../lib/schema';
 import { verifyTurnstile } from '../../lib/turnstile';
 
@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ request, url }) => {
   if (String(form.get('website') ?? '') !== '') return json({ ok: true });
 
   const ip = clientIp(request);
-  const ipKey = `vrijwilliger:${await fingerprint(ip)}`;
+  const ipKey = `vrijwilliger:${await fingerprint(ipScope(ip))}`;
   const allowed = await underLimit([
     { bucket: ipKey, max: 5, windowSeconds: 3600 },
     { bucket: 'vrijwilliger:alle', max: 60, windowSeconds: 3600 },
