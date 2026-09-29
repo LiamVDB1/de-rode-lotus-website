@@ -1,15 +1,49 @@
 {
+  // Productie: derodelotus.com. Staging: `CLOUDFLARE_ENV=staging` (zie README).
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "de-rode-lotus",
   "compatibility_date": "2026-09-25",
-  "main": "worker/index.js",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@astrojs/cloudflare/entrypoints/server",
   "workers_dev": true,
   "routes": [
     { "pattern": "derodelotus.com", "custom_domain": true },
-    { "pattern": "www.derodelotus.com", "custom_domain": true }
+    { "pattern": "www.derodelotus.com", "custom_domain": true },
+    { "pattern": "preview.derodelotus.com", "custom_domain": true }
   ],
-  "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS",
-    "run_worker_first": true
+  "assets": { "directory": "./dist", "binding": "ASSETS" },
+  "observability": { "enabled": true },
+  "vars": {
+    "SITE_ORIGIN": "https://derodelotus.com",
+    "COOKIE_DOMAIN": "derodelotus.com",
+    "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+    "NOTIFY_TO": "derodelotus@outlook.com",
+    "NOTIFY_FROM": "website@derodelotus.com"
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "de-rode-lotus", "database_id": "e8e97ead-df74-4ad2-8e92-a7d2c9b29044", "migrations_dir": "migrations" }
+  ],
+  "r2_buckets": [
+    { "binding": "MEDIA", "bucket_name": "de-rode-lotus-media" }
+  ],
+  "env": {
+    "staging": {
+      "name": "de-rode-lotus-staging",
+      "workers_dev": true,
+      "routes": [],
+      "vars": {
+        "SITE_ORIGIN": "https://de-rode-lotus-staging.de-rode-lotus-website.workers.dev",
+        "COOKIE_DOMAIN": "",
+        "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+        "NOTIFY_TO": "derodelotus@outlook.com",
+        "NOTIFY_FROM": "website@derodelotus.com"
+      },
+      "d1_databases": [
+        { "binding": "DB", "database_name": "de-rode-lotus-staging", "database_id": "bac31ac2-4b07-40e6-977b-0518b5631d16", "migrations_dir": "migrations" }
+      ],
+      "r2_buckets": [
+        { "binding": "MEDIA", "bucket_name": "de-rode-lotus-media-staging" }
+      ]
+    }
   }
 }

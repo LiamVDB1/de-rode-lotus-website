@@ -1,0 +1,65 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import PreviewLink from '../../components/admin/PreviewLink.astro';
+import { documentStatuses, loadDraft } from '../../lib/content';
+import { editors } from '../../lib/editor-spec';
+import { countNew } from '../../lib/inbox';
+import { listMedia } from '../../lib/media';
+
+const order = ['home', 'activities', 'team', 'practical', 'donate', 'faq', 'notice'] as const;
+const [statuses, newCount, media, team] = await Promise.all([documentStatuses(), countNew(), listMedia(), loadDraft('team')]);
+const byKey = new Map(statuses.map((status) => [status.key, status]));
+const changed = statuses.filter((status) => status.changed);
+
+const formatter = new Intl.DateTimeFormat('nl-BE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Brussels' });
+const when = (iso: string | null) => (iso ? formatter.format(new Date(iso)) : null);
+---
+<AdminLayout title="Overzicht" active="/beheer">
+  <header class="page-head overview-head">
+    <div>
+      <h1>Overzicht</h1>
+      <p class="lead">
+        {changed.length > 0
+          ? <><span class="status-dot" data-state="draft"></span>{changed.length} {changed.length === 1 ? 'wijziging staat' : 'wijzigingen staan'} nog niet op de website.</>
+          : <><span class="status-dot" data-state="live"></span>Alles staat online.</>}
+      </p>
+    </div>
+    {changed.length > 0 && (
+      <div class="head-actions">
+        <PreviewLink />
+        <button class="btn btn-primary" type="button" data-publish>Publiceren</button>
+      </div>
+    )}
+  </header>
+
+  <ul class="stats" aria-label="Snel naar">
+    <li><a class="stat" href="/beheer/inbox" data-alert={newCount > 0}><strong>{newCount}</strong><span>{newCount === 1 ? 'nieuwe aanmelding' : 'nieuwe aanmeldingen'}</span></a></li>
+    <li><a class="stat" href="/beheer/inhoud/team"><strong>{team.members.length}</strong><span>vrijwilligers</span></a></li>
+    <li><a class="stat" href="/beheer/fotos"><strong>{media.length}</strong><span>foto’s</span></a></li>
+  </ul>
+
+  <section aria-labelledby="inhoud-titel">
+    <h2 id="inhoud-titel" class="section-title">Inhoud</h2>
+    <ul class="doc-list card">
+      {order.map((key) => {
+        const status = byKey.get(key);
+        const state = status?.changed ? 'draft' : status?.publishedAt ? 'live' : 'default';
+        const label = status?.changed
+          ? `Gewijzigd ${when(status.updatedAt)}`
+          : status?.publishedAt ? `Online sinds ${when(status.publishedAt)}` : 'Oorspronkelijke tekst';
+        return (
+          <li>
+            <a class="doc-row" href={`/beheer/inhoud/${key}`}>
+              <span class="doc-main">
+                <span class="doc-title">{editors[key].title}</span>
+                <span class="doc-text">{editors[key].description}</span>
+              </span>
+              <span class="doc-status" data-state={state}><span class="status-dot" data-state={state}></span>{label}</span>
+              <span class="doc-arrow" aria-hidden="true">›</span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+</AdminLayout>

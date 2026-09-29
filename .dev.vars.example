@@ -1,0 +1,7 @@
+# Kopieer naar .dev.vars voor lokaal testen.
+# Hash maken: npm run admin:password -- --print
+ADMIN_PASSWORD_HASH=pbkdf2-sha256$100000$<salt>$<hash>
+# Minstens 32 willekeurige tekens
+SESSION_SECRET=
+# Leeg laten gebruikt lokaal de testsleutel van Turnstile
+TURNSTILE_SECRET=

@@ -1,0 +1,14 @@
+{
+  "enabled": false,
+  "title": "Steun De Rode Lotus",
+  "intro": "Met een gift help je ons de weggeefwinkel, de voedselbedeling en de activiteiten draaiende te houden. Elke bijdrage telt.",
+  "beneficiary": "vzw De Rode Lotus",
+  "iban": "",
+  "bic": "",
+  "remittance": "Gift De Rode Lotus",
+  "amounts": [
+    10,
+    25,
+    50
+  ]
+}

@@ -1,0 +1,126 @@
+---
+import '@fontsource/atkinson-hyperlegible/400.css';
+import '@fontsource/atkinson-hyperlegible/700.css';
+import '../styles/admin.css';
+import Logo from '../components/Logo.astro';
+import PreviewLink from '../components/admin/PreviewLink.astro';
+import { documentStatuses } from '../lib/content';
+import { editors } from '../lib/editor-spec';
+import { countNew } from '../lib/inbox';
+import { DOCUMENT_KEYS } from '../lib/schema';
+
+interface Props {
+  title: string;
+  /** Pad van het actieve menu-item. */
+  active: string;
+}
+const { title, active } = Astro.props;
+const [statuses, newCount] = await Promise.all([documentStatuses(), countNew()]);
+const changed = statuses.filter((status) => status.changed);
+const changedKeys = new Set(changed.map((status) => status.key));
+const contentOrder = ['home', 'activities', 'team', 'practical', 'donate', 'faq', 'notice'] as const;
+const icons: Record<string, string> = {
+  overzicht: 'M3 10.5 10 4l7 6.5V17h-4.5v-4h-5v4H3Z',
+  fotos: 'M3 5.5h14v10H3Zm2.5 8 3-3.5 2.2 2.5 1.8-2 3 3M13 8.2a1 1 0 1 1-2 0 1 1 0 0 1 2 0',
+  inbox: 'M3 11h4l1.5 2.5h3L13 11h4M3 11l2.2-6h9.6L17 11v5H3Z',
+};
+const navItem = (href: string) => (active === href ? 'page' : undefined);
+---
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{title} — Beheer De Rode Lotus</title>
+  </head>
+  <body class="admin">
+    <a class="skip-link" href="#inhoud">Ga naar de inhoud</a>
+    <aside class="sidebar" data-open="false">
+      <div class="sidebar-top">
+        <a class="sidebar-brand" href="/beheer"><Logo id="admin-logo" /><span><strong>De Rode Lotus</strong><small>Beheer</small></span></a>
+        <button class="sidebar-toggle" type="button" aria-expanded="false" aria-controls="admin-nav">Menu</button>
+      </div>
+      <nav id="admin-nav" class="sidebar-nav" aria-label="Beheer">
+        <a href="/beheer" aria-current={navItem('/beheer')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d={icons.overzicht} /></svg>Overzicht</a>
+        <p class="nav-label">Inhoud</p>
+        {contentOrder.filter((key) => DOCUMENT_KEYS.includes(key)).map((key) => (
+          <a href={`/beheer/inhoud/${key}`} aria-current={navItem(`/beheer/inhoud/${key}`)}>
+            <span class="nav-dot" aria-hidden="true"></span>{editors[key].title}
+            {changedKeys.has(key) && <span class="nav-changed" title="Gewijzigd, nog niet gepubliceerd">gewijzigd</span>}
+          </a>
+        ))}
+        <p class="nav-label">Verder</p>
+        <a href="/beheer/fotos" aria-current={navItem('/beheer/fotos')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d={icons.fotos} /></svg>Foto’s</a>
+        <a href="/beheer/inbox" aria-current={navItem('/beheer/inbox')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d={icons.inbox} /></svg>Inbox{newCount > 0 && <span class="nav-badge">{newCount}<span class="sr-only"> nieuw</span></span>}</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="publish-card" data-changed={changed.length}>
+          {changed.length > 0
+            ? <p><strong>{changed.length} {changed.length === 1 ? 'onderdeel' : 'onderdelen'}</strong> gewijzigd, nog niet op de website.</p>
+            : <p>Alles staat online. <span aria-hidden="true">✓</span></p>}
+          <button class="btn btn-primary btn-block" type="button" data-publish disabled={changed.length === 0}>Publiceren</button>
+          <PreviewLink class="btn btn-quiet btn-block" />
+        </div>
+        <div class="sidebar-links">
+          <a href="/" target="_blank" rel="noopener">Website ↗</a>
+          <form method="post" action="/beheer/uitloggen"><button type="submit">Uitloggen</button></form>
+        </div>
+      </div>
+    </aside>
+
+    <main id="inhoud" class="admin-main">
+      <slot />
+    </main>
+
+    <dialog class="confirm" id="publish-dialog" aria-labelledby="publish-title">
+      <form method="dialog">
+        <h2 id="publish-title">Wijzigingen publiceren?</h2>
+        <p>Deze onderdelen komen meteen op derodelotus.com:</p>
+        <ul>{changed.map((status) => <li>{editors[status.key].title}</li>)}</ul>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" value="cancel">Nog niet</button>
+          <button class="btn btn-primary" value="ok">Publiceren</button>
+        </div>
+      </form>
+    </dialog>
+    <div class="toasts" role="status" aria-live="polite"></div>
+
+    <script>
+      import { api, toast } from '../scripts/admin/api';
+
+      const sidebar = document.querySelector<HTMLElement>('.sidebar');
+      const toggle = document.querySelector<HTMLButtonElement>('.sidebar-toggle');
+      toggle?.addEventListener('click', () => {
+        const open = sidebar?.dataset.open !== 'true';
+        if (sidebar) sidebar.dataset.open = String(open);
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+
+      const dialog = document.querySelector<HTMLDialogElement>('#publish-dialog');
+      document.querySelectorAll<HTMLButtonElement>('[data-publish]').forEach((button) =>
+        button.addEventListener('click', () => {
+          if (document.body.dataset.dirty === 'true') {
+            toast('Sla eerst je wijzigingen op, dan kan je publiceren.', 'error');
+            return;
+          }
+          dialog?.showModal();
+        }),
+      );
+      dialog?.addEventListener('close', async () => {
+        if (dialog.returnValue !== 'ok') return;
+        const result = await api<{ published: number }>('POST', '/beheer/api/publiceren');
+        if (!result.ok) return;
+        sessionStorage.setItem('lotus-toast', 'Gepubliceerd. De wijzigingen staan nu op de website.');
+        location.reload();
+      });
+
+      const pending = sessionStorage.getItem('lotus-toast');
+      if (pending) {
+        sessionStorage.removeItem('lotus-toast');
+        toast(pending, 'success');
+      }
+    </script>
+  </body>
+</html>

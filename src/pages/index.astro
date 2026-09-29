@@ -1,14 +1,12 @@
 ---
-import '@fontsource/atkinson-hyperlegible/400.css';
-import '@fontsource/atkinson-hyperlegible/700.css';
-import home from '../data/home.json';
-import practical from '../data/practical.json';
-import activities from '../data/activities.json';
-import faq from '../data/faq.json';
-import notice from '../data/notice.json';
-import previewPhotos from '../data/preview-photos.json';
-import { activityHref, activityPreview, phoneHref, photoSource, routeHref } from '../lib/site';
-import '../styles/site.css';
+import PublicLayout from '../layouts/PublicLayout.astro';
+import Logo from '../components/Logo.astro';
+import Arrow from '../components/Arrow.astro';
+import { loadDocuments } from '../lib/content';
+import { hasPhoto, phoneHref, routeHref } from '../lib/site';
+
+const docs = await loadDocuments(Astro.locals.draft ? 'draft' : 'published');
+const { home, practical, activities, faq, notice, donate } = docs;
 
 const emailHref = `mailto:${encodeURIComponent(practical.email)}`;
 const phoneLink = phoneHref(practical.phoneInternational);
@@ -16,151 +14,113 @@ const routeLink = routeHref(practical.street, practical.postalCode, practical.ci
 const days = practical.hours.map(({ day }) => day.toLowerCase());
 const hoursList = days.length < 2 ? days.join('') : `${days.slice(0, -1).join(', ')} en ${days.at(-1)}`;
 const hoursSummary = hoursList.charAt(0).toUpperCase() + hoursList.slice(1);
-const heroPhoto = photoSource(home.heroPhoto, previewPhotos.hero);
-const storyPhoto = photoSource(home.storyPhoto, previewPhotos.story);
-const showNotice = notice.enabled && notice.title.trim() && notice.message.trim();
+const showNotice = notice.enabled && notice.title && notice.message;
+const donateDialog = donate.enabled && donate.iban !== '';
+const showCat = hasPhoto(home.catPhoto) && home.catName !== '';
 ---
-<!doctype html>
-<html lang="nl">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#173252" />
-    <meta name="description" content={home.metaDescription} />
-    <title>{home.pageTitle}</title>
-  </head>
-  <body>
-    <a class="skip-link" href="#inhoud">Ga naar de inhoud</a>
-    <div class="nav-wrap">
-      <header class="site-nav" data-menu="closed" aria-label="Hoofdnavigatie">
-        <a class="brand" href="#top" aria-label="De Rode Lotus, naar boven">
-          <svg viewBox="0 0 64 48" aria-hidden="true"><path d="M32 43C20 37 15 27 16 16c8 3 14 9 16 18 2-9 8-15 16-18 1 11-4 21-16 27Z" fill="currentColor"/><path d="M31 35C23 27 24 16 32 6c8 10 9 21 1 29" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M17 38C9 34 5 27 5 18c7 2 13 7 17 14M47 38c8-4 12-11 12-20-7 2-13 7-17 14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
-          <strong>De Rode Lotus</strong>
-        </a>
-        <nav class="nav-links" id="primary-menu" aria-label="Op deze pagina">
-          <a href="#wat-we-doen">Wat we doen</a>
-          <a href="#praktisch">Praktisch</a>
-          <a href="#helpen">Meehelpen</a>
-          <a href="#vragen">Veelgestelde vragen</a>
-          <a href={practical.facebookUrl} target="_blank" rel="noopener noreferrer">Facebook</a>
-          <a class="contact" href={emailHref}>Contact</a>
-        </nav>
-        <button class="mobile-menu" type="button" aria-expanded="false" aria-controls="primary-menu" aria-label="Menu openen">
-          <svg class="menu-open-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <svg class="menu-close-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
-      </header>
+<PublicLayout docs={docs} title={home.pageTitle} description={home.metaDescription}>
+  <section class="hero" id="top" aria-labelledby="hero-title">
+    {hasPhoto(home.heroPhoto) && <figure class="hero-image"><img src={home.heroPhoto} width="2048" height="1365" decoding="async" fetchpriority="high" alt={home.heroPhotoAlt} /></figure>}
+    <div class="hero-content">
+      <h1 id="hero-title">{home.heroTitle}</h1>
+      <p>{home.heroIntro}</p>
+      <div class="actions">
+        <a class="button" href="#praktisch">Ik zoek praktische info <Arrow /></a>
+        <a class="button light" href="#helpen">Ik wil helpen <Arrow /></a>
+      </div>
     </div>
+  </section>
 
-    <main id="inhoud">
-      <section class="hero" id="top" aria-labelledby="hero-title">
-        <figure class="hero-image"><img src={heroPhoto} width="2048" height="1365" decoding="async" fetchpriority="high" alt={home.heroPhotoAlt} /></figure>
-        <div class="hero-content">
-          <h1 id="hero-title">{home.heroTitle}</h1>
-          <p>{home.heroIntro}</p>
-          <div class="actions">
-            <a class="button" href="#praktisch">Ik zoek praktische info <svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-            <a class="button light" href="#helpen">Ik wil helpen <svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-          </div>
+  <div class="quick-wrap">
+    <div class="quick" aria-label="Praktische informatie">
+      <article>
+        <span class="quick-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="8" r="2" fill="currentColor"/></svg></span>
+        <div><strong>{practical.street}</strong><p>{practical.postalCode} {practical.city} · {practical.neighbourhood}</p><a href={routeLink} target="_blank" rel="noopener noreferrer">Bekijk route</a></div>
+      </article>
+      <article>
+        <span class="quick-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 6v4l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <div><strong>Openingsuren</strong><p>{hoursSummary}</p><a href="#praktisch">Bekijk alle uren</a></div>
+      </article>
+      <article>
+        <span class="quick-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M6 14 14 6m-6 0h6v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div><strong>Vraag het ons</strong><p><a href={phoneLink}>{practical.phoneDisplay}</a><br /><a href={emailHref}>{practical.email}</a></p></div>
+      </article>
+    </div>
+  </div>
+
+  {showNotice && <aside class="notice" data-until={notice.until} aria-label="Actuele mededeling"><div><strong>{notice.title}</strong><p>{notice.message}</p></div><button type="button" aria-label="Mededeling sluiten"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg></button></aside>}
+
+  <section class="section" id="wat-we-doen" aria-labelledby="services-title">
+    <div class="section-head"><h2 id="services-title">{home.servicesTitle}</h2><p>{home.servicesIntro}</p></div>
+    <div class="services">
+      {activities.map((activity) => <a class="service" href={`/activiteiten/${activity.slug}`}>
+        {hasPhoto(activity.photo)
+          ? <img src={activity.photo} width="400" height="290" loading="lazy" decoding="async" alt={activity.photoAlt} />
+          : <span class="photo-placeholder" aria-hidden="true"><Logo id={`ph-${activity.slug}`} /></span>}
+        <div class="service-copy">
+          <h3>{activity.title}</h3>
+          {activity.when && <span class="service-when">{activity.when}</span>}
+          <p>{activity.description}</p>
+          <span class="service-more">Meer over {activity.title.toLowerCase()} <Arrow /></span>
         </div>
-      </section>
+      </a>)}
+    </div>
+  </section>
 
-      <div class="quick-wrap">
-        <div class="quick" aria-label="Praktische informatie">
-          <article>
-            <span class="quick-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="8" r="2" fill="currentColor"/></svg></span>
-            <div><strong>{practical.street}</strong><p>{practical.postalCode} {practical.city} · {practical.neighbourhood}</p><a href={routeLink} target="_blank" rel="noopener noreferrer">Bekijk route</a></div>
-          </article>
-          <article>
-            <span class="quick-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 6v4l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <div><strong>Openingsuren</strong><p>{hoursSummary}</p><a href="#praktisch">Bekijk alle uren</a></div>
-          </article>
-          <article>
-            <span class="quick-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M6 14 14 6m-6 0h6v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <div><strong>Vraag het ons</strong><p><a href={phoneLink}>{practical.phoneDisplay}</a><br /><a href={emailHref}>{practical.email}</a></p></div>
-          </article>
-        </div>
-      </div>
+  <section class="practical" id="praktisch" aria-labelledby="hours-title">
+    <div class="practical-inner">
+      <div class="section-head"><h2 id="hours-title">{practical.hoursTitle}</h2><p>{practical.hoursIntro}</p><a class="practical-social" href={practical.facebookUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V10.5H7.8v3h2.6V21h3.1Z" fill="currentColor"/></svg><span>Uitzonderlijk gesloten? Dat lees je eerst op onze Facebook-pagina.</span></a></div>
+      <ul class="hours">
+        {practical.hours.map((item) => <li data-day={item.day.toLowerCase()}><strong>{item.day}</strong><span class="hour-time">{item.time}</span><p>{item.activity}</p></li>)}
+      </ul>
+    </div>
+  </section>
 
-      {showNotice && <aside class="notice" data-until={notice.until} aria-label="Actuele mededeling"><div><strong>{notice.title}</strong><p>{notice.message}</p></div><button type="button" aria-label="Mededeling sluiten"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg></button></aside>}
+  <section class="story" aria-labelledby="story-title">
+    <figure class="story-photo">
+      {hasPhoto(home.storyPhoto) ? <img src={home.storyPhoto} width="400" height="290" loading="lazy" decoding="async" alt={home.storyPhotoAlt} /> : <span class="photo-placeholder" aria-hidden="true"><Logo id="ph-story" /></span>}
+    </figure>
+    <div class="story-copy"><h2 id="story-title">{home.storyTitle}</h2><p>{home.storyText}</p><a class="button" href="/vrijwilligers">Maak kennis met ons team <Arrow /></a></div>
+  </section>
 
-      <section class="section" id="wat-we-doen" aria-labelledby="services-title">
-        <div class="section-head"><h2 id="services-title">{home.servicesTitle}</h2><p>{home.servicesIntro}</p></div>
-        <div class="services">
-          {activities.map((activity, index) => <article class="service">
-            <img src={photoSource(activity.photo, activityPreview(index))} width="400" height="290" loading="lazy" decoding="async" alt={activity.photoAlt} />
-            <div><h3>{activity.title}</h3><p>{activity.description}</p><a href={activityHref(activity.linkTarget, practical.email)}>{activity.linkText}</a></div>
-          </article>)}
-        </div>
-      </section>
+  {showCat && <section class="cat" aria-labelledby="cat-title">
+    <img src={home.catPhoto} width="480" height="480" loading="lazy" decoding="async" alt={home.catPhotoAlt} />
+    <div><span class="eyebrow">Onze huiskat</span><h2 id="cat-title">Maak kennis met {home.catName}.</h2>{home.catText && <p>{home.catText}</p>}</div>
+  </section>}
 
-      <section class="practical" id="praktisch" aria-labelledby="hours-title">
-        <div class="practical-inner">
-          <div class="section-head"><h2 id="hours-title">{practical.hoursTitle}</h2><p>{practical.hoursIntro}</p><a class="practical-social" href={practical.facebookUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V10.5H7.8v3h2.6V21h3.1Z" fill="currentColor"/></svg><span>Uitzonderlijk gesloten? Dat lees je eerst op onze Facebook-pagina.</span></a></div>
-          <div class="hours">
-            {practical.hours.map((item) => <article><strong>{item.day}</strong><span class="hour-time">{item.time}</span><p>{item.activity}</p></article>)}
-          </div>
-        </div>
-      </section>
+  <section class="help" id="helpen" aria-labelledby="help-title">
+    <div><h2 id="help-title">{home.helpTitle}</h2><p>{home.helpIntro}</p></div>
+    <div class="help-actions">
+      <a href="/vrijwilligers#aanmelden"><span>Ik wil vrijwilliger worden</span><Arrow /></a>
+      <a href={phoneLink}><span>Ik wil iets brengen</span><Arrow /></a>
+      {donateDialog && <a class="help-donate" href="#doneren" data-open-donate><span>Ik wil een gift doen</span><Arrow /></a>}
+      <a href={emailHref}><span>Ik heb eerst een vraag</span><Arrow /></a>
+    </div>
+  </section>
 
-      <section class="story" aria-labelledby="story-title">
-        <figure class="story-photo"><img src={storyPhoto} width="400" height="290" loading="lazy" decoding="async" alt={home.storyPhotoAlt} /></figure>
-        <div class="story-copy"><h2 id="story-title">{home.storyTitle}</h2><p>{home.storyText}</p><a class="button" href={emailHref}>Stel een vraag <svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
-      </section>
+  <section class="section faq" id="vragen" aria-labelledby="faq-title">
+    <div class="section-head"><h2 id="faq-title">{home.faqTitle}</h2><p>{home.faqIntro}</p></div>
+    <div class="faq-list">{faq.map(({ question, answer }) => <details><summary>{question}</summary><p>{answer}</p></details>)}</div>
+  </section>
+</PublicLayout>
 
-      <section class="help" id="helpen" aria-labelledby="help-title">
-        <div><h2 id="help-title">{home.helpTitle}</h2><p>{home.helpIntro}</p></div>
-        <div class="help-actions">
-          <a href={`mailto:${encodeURIComponent(practical.email)}?subject=Ik%20wil%20meehelpen`}><span>Ik wil vrijwilliger worden</span><svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-          <a href={phoneLink}><span>Ik wil iets brengen</span><svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-          {practical.donateUrl && <a href={practical.donateUrl} target="_blank" rel="noopener noreferrer"><span>Ik wil een gift doen</span><svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>}
-          <a href={emailHref}><span>Ik heb eerst een vraag</span><svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        </div>
-      </section>
+<script>
+  const notice = document.querySelector<HTMLElement>('.notice');
+  if (notice) {
+    const until = notice.dataset.until;
+    const todayInGent = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Brussels' });
+    if (until && /^\d{4}-\d{2}-\d{2}$/.test(until) && todayInGent > until) notice.remove();
+    notice.querySelector('button')?.addEventListener('click', () => notice.remove());
+  }
 
-      <section class="section faq" id="vragen" aria-labelledby="faq-title">
-        <div class="section-head"><h2 id="faq-title">{home.faqTitle}</h2><p>{home.faqIntro}</p></div>
-        <div class="faq-list">{faq.map(({ question, answer }) => <details><summary>{question}</summary><p>{answer}</p></details>)}</div>
-      </section>
-    </main>
-
-    <footer>
-      <div class="footer-main">
-        <div><strong>De Rode Lotus</strong><p>{practical.street} · {practical.postalCode} {practical.city} · <a href={phoneLink}>{practical.phoneDisplay}</a> · <a href={emailHref}>{practical.email}</a></p></div>
-        <div class="footer-social">
-          <a href={practical.facebookUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V10.5H7.8v3h2.6V21h3.1Z" fill="currentColor"/></svg><span>Volg ons op Facebook</span></a>
-          {practical.instagramUrl && <a href={practical.instagramUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></svg><span>Instagram</span></a>}
-        </div>
-      </div>
-      <p class="footer-bottom">vzw De Rode Lotus · Weggeefwinkel en ontmoetingsplek in de Brugse Poort</p>
-    </footer>
-
-    <script>
-      const nav = document.querySelector<HTMLElement>('.site-nav');
-      const menuButton = document.querySelector<HTMLButtonElement>('.mobile-menu');
-      const setMenu = (open: boolean) => {
-        if (!nav || !menuButton) return;
-        nav.dataset.menu = open ? 'open' : 'closed';
-        menuButton.setAttribute('aria-expanded', String(open));
-        menuButton.setAttribute('aria-label', open ? 'Menu sluiten' : 'Menu openen');
-      };
-      menuButton?.addEventListener('click', () => setMenu(nav?.dataset.menu !== 'open'));
-      nav?.querySelectorAll<HTMLAnchorElement>('.nav-links a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
-      document.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape' || nav?.dataset.menu !== 'open') return;
-        setMenu(false);
-        menuButton?.focus();
-      });
-      document.addEventListener('pointerdown', (event) => {
-        if (nav?.dataset.menu === 'open' && !nav.contains(event.target as Node)) setMenu(false);
-      });
-      const notice = document.querySelector<HTMLElement>('.notice');
-      if (notice) {
-        const until = notice.dataset.until;
-        const todayInGent = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Brussels' });
-        if (until && /^\d{4}-\d{2}-\d{2}$/.test(until) && todayInGent > until) notice.remove();
-        notice.querySelector('button')?.addEventListener('click', () => notice.remove());
-      }
-    </script>
-  </body>
-</html>
+  // Markeer de dag van vandaag in de openingsuren.
+  const weekday = new Date().toLocaleDateString('nl-BE', { weekday: 'long', timeZone: 'Europe/Brussels' });
+  const today = document.querySelector<HTMLElement>(`.hours li[data-day="${CSS.escape(weekday)}"]`);
+  if (today) {
+    today.dataset.today = '';
+    const badge = document.createElement('span');
+    badge.className = 'today-badge';
+    badge.textContent = 'Vandaag';
+    today.append(badge);
+  }
+</script>

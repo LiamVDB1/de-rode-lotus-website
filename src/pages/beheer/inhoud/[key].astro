@@ -1,0 +1,45 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PreviewLink from '../../../components/admin/PreviewLink.astro';
+import { documentStatuses, loadDraft } from '../../../lib/content';
+import { editors } from '../../../lib/editor-spec';
+import { DOCUMENT_KEYS, type DocumentKey } from '../../../lib/schema';
+
+const key = Astro.params.key as DocumentKey;
+if (!DOCUMENT_KEYS.includes(key)) return Astro.rewrite('/404');
+
+const editor = editors[key];
+const [value, statuses] = await Promise.all([loadDraft(key), documentStatuses()]);
+const status = statuses.find((item) => item.key === key);
+// In een <script type="application/json"> mag geen "</script>" staan; < escapen volstaat.
+const boot = JSON.stringify({ editor, value, hasDraft: Boolean(status?.changed) }).replace(/</g, '\\u003c');
+---
+<AdminLayout title={editor.title} active={`/beheer/inhoud/${key}`}>
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Inhoud</p>
+      <h1>{editor.title}</h1>
+      <p class="lead">{editor.description}</p>
+    </div>
+    <PreviewLink path={editor.previewPath} label="Voorbeeld" />
+  </header>
+
+  <div class="error-summary" data-errors role="alert" tabindex="-1" hidden></div>
+
+  <form class="editor" data-editor novalidate>
+    <p class="empty">Formulier laden…</p>
+  </form>
+
+  <div class="save-bar">
+    <p class="save-status" data-save-status aria-live="polite"></p>
+    <div class="save-actions">
+      <button class="btn btn-quiet" type="button" data-revert hidden>Terugzetten</button>
+      <button class="btn btn-primary" type="button" data-save disabled>Opslaan <kbd>⌘S</kbd></button>
+    </div>
+  </div>
+
+  <script id="editor-data" type="application/json" set:html={boot} />
+  <script>
+    import '../../../scripts/admin/editor';
+  </script>
+</AdminLayout>

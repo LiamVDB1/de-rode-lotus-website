@@ -1,0 +1,69 @@
+---
+import type { Documents } from '../lib/schema';
+import { epcSvg, formatIban } from '../lib/epc';
+
+interface Props { donate: Documents['donate'] }
+const { donate } = Astro.props;
+
+const base = { beneficiary: donate.beneficiary, iban: donate.iban, bic: donate.bic, remittance: donate.remittance };
+const options = [...donate.amounts.map((amount) => ({ amount, label: `€ ${amount}` })), { amount: undefined, label: 'Ander bedrag' }];
+const codes = await Promise.all(options.map(async (option) => ({ ...option, svg: await epcSvg({ ...base, amount: option.amount }) })));
+const iban = formatIban(donate.iban);
+---
+<dialog class="donate-dialog" id="doneren" aria-labelledby="doneren-titel">
+  <div class="dialog-head">
+    <h2 id="doneren-titel">{donate.title}</h2>
+    <button class="dialog-close" type="button" data-close aria-label="Sluiten"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg></button>
+  </div>
+  <p class="dialog-intro">{donate.intro}</p>
+
+  <fieldset class="amounts">
+    <legend>Kies een bedrag</legend>
+    {codes.map((code, index) => <label class="amount-chip"><input type="radio" name="bedrag" value={String(index)} checked={index === 0} /><span>{code.label}</span></label>)}
+  </fieldset>
+
+  <div class="donate-grid">
+    <div class="qr-box">
+      {codes.map((code, index) => <div class="qr" data-qr={String(index)} hidden={index !== 0} set:html={code.svg} />)}
+      <p>Scan met je bankapp</p>
+    </div>
+    <dl class="bank-details">
+      <div><dt>Rekeningnummer</dt><dd><span class="iban">{iban}</span><button class="copy" type="button" data-copy={donate.iban}><span data-label>Kopieer</span></button></dd></div>
+      <div><dt>Op naam van</dt><dd>{donate.beneficiary}</dd></div>
+      {donate.bic && <div><dt>BIC</dt><dd>{donate.bic}</dd></div>}
+      {donate.remittance && <div><dt>Mededeling</dt><dd>{donate.remittance}</dd></div>}
+    </dl>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('#doneren');
+  if (dialog) {
+    document.querySelectorAll<HTMLElement>('[data-open-donate]').forEach((trigger) =>
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        dialog.showModal();
+      }),
+    );
+    dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.querySelectorAll<HTMLInputElement>('input[name="bedrag"]').forEach((input) =>
+      input.addEventListener('change', () => {
+        dialog.querySelectorAll<HTMLElement>('[data-qr]').forEach((qr) => (qr.hidden = qr.dataset.qr !== input.value));
+      }),
+    );
+    const copy = dialog.querySelector<HTMLButtonElement>('[data-copy]');
+    copy?.addEventListener('click', async () => {
+      const label = copy.querySelector<HTMLElement>('[data-label]');
+      try {
+        await navigator.clipboard.writeText(copy.dataset.copy ?? '');
+        if (label) label.textContent = 'Gekopieerd';
+      } catch {
+        if (label) label.textContent = 'Selecteer en kopieer';
+      }
+      setTimeout(() => label && (label.textContent = 'Kopieer'), 2500);
+    });
+  }
+</script>

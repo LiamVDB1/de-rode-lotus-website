@@ -1,0 +1,140 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { listSubmissions, STATUSES } from '../../lib/inbox';
+
+const submissions = await listSubmissions();
+const formatter = new Intl.DateTimeFormat('nl-BE', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Brussels' });
+const labels: Record<(typeof STATUSES)[number], string> = { nieuw: 'Nieuw', gelezen: 'Gelezen', afgehandeld: 'Afgehandeld' };
+const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
+---
+<AdminLayout title="Inbox" active="/beheer/inbox">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Aanmeldingen</p>
+      <h1>Inbox</h1>
+      <p class="lead">Mensen die via de website vrijwilliger willen worden. Neem contact op, en zet ze daarna op <strong>Afgehandeld</strong>.</p>
+    </div>
+  </header>
+
+  <div class="filters" role="group" aria-label="Filter">
+    <button type="button" class="chip" aria-pressed="true" data-filter="open">Open</button>
+    <button type="button" class="chip" aria-pressed="false" data-filter="alle">Alle ({submissions.length})</button>
+  </div>
+
+  {submissions.length === 0
+    ? <div class="card empty-state"><p><strong>Nog geen aanmeldingen.</strong></p><p>Zodra iemand het formulier op <a href="/vrijwilligers" target="_blank" rel="noopener">de vrijwilligerspagina</a> invult, verschijnt het hier.</p></div>
+    : (
+      <ul class="inbox-list">
+        {submissions.map((item) => (
+          <li class="card submission" data-id={item.id} data-status={item.status}>
+            <div class="submission-head">
+              <div>
+                <h2>{item.name}</h2>
+                <p class="submission-date"><time datetime={item.created_at}>{formatter.format(new Date(item.created_at))}</time></p>
+              </div>
+              <label class="status-select">
+                <span class="sr-only">Status van {item.name}</span>
+                <select data-status-select>
+                  {STATUSES.map((status) => <option value={status} selected={status === item.status}>{labels[status]}</option>)}
+                </select>
+              </label>
+            </div>
+            <dl class="submission-details">
+              <div><dt>E-mail</dt><dd><a href={`mailto:${item.email}`}>{item.email}</a></dd></div>
+              {item.phone && <div><dt>Telefoon</dt><dd><a href={telHref(item.phone)}>{item.phone}</a></dd></div>}
+              {item.availability && <div><dt>Wanneer</dt><dd>{item.availability}</dd></div>}
+            </dl>
+            {item.message && <blockquote class="submission-message">{item.message}</blockquote>}
+            <div class="submission-actions">
+              <a class="btn btn-ghost btn-small" href={`mailto:${item.email}?subject=${encodeURIComponent('Vrijwilligen bij De Rode Lotus')}`}>Mail {item.name.split(' ')[0]}</a>
+              <button class="btn btn-ghost btn-small" type="button" data-add-team>Op de vrijwilligerspagina zetten</button>
+              <button class="btn-link danger" type="button" data-delete>Verwijderen</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
+  <p class="empty" data-none-open hidden>Geen open aanmeldingen. <button type="button" class="btn-link" data-show-all>Toon alle</button></p>
+
+  <p class="privacy-note">Privacy: deze gegevens zijn enkel bedoeld om contact op te nemen. Verwijder een aanmelding als de persoon geen vrijwilliger wordt of erom vraagt.</p>
+
+  <script>
+    import { api, toast } from '../../scripts/admin/api';
+
+    const cards = () => [...document.querySelectorAll<HTMLLIElement>('.submission')];
+    const noneOpen = document.querySelector<HTMLElement>('[data-none-open]');
+    const filterButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    let filter = 'open';
+
+    function applyFilter(): void {
+      filterButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.filter === filter)));
+      let shown = 0;
+      cards().forEach((card) => {
+        const visible = filter === 'alle' || card.dataset.status !== 'afgehandeld';
+        card.hidden = !visible;
+        if (visible) shown += 1;
+      });
+      if (noneOpen) noneOpen.hidden = shown > 0 || cards().length === 0;
+    }
+
+    filterButtons.forEach((button) =>
+      button.addEventListener('click', () => {
+        filter = button.dataset.filter ?? 'open';
+        applyFilter();
+      }),
+    );
+    document.querySelector('[data-show-all]')?.addEventListener('click', () => {
+      filter = 'alle';
+      applyFilter();
+    });
+
+    cards().forEach((card) => {
+      const id = encodeURIComponent(card.dataset.id ?? '');
+      const select = card.querySelector<HTMLSelectElement>('[data-status-select]');
+
+      // Openen telt als gelezen.
+      if (card.dataset.status === 'nieuw' && select) {
+        select.value = 'gelezen';
+        void api('PATCH', `/beheer/api/inbox/${id}`, { status: 'gelezen' }, { quiet: true }).then((result) => {
+          if (result.ok) card.dataset.status = 'gelezen';
+        });
+      }
+
+      select?.addEventListener('change', async () => {
+        const previous = card.dataset.status ?? 'gelezen';
+        const result = await api('PATCH', `/beheer/api/inbox/${id}`, { status: select.value });
+        if (!result.ok) {
+          select.value = previous;
+          return;
+        }
+        card.dataset.status = select.value;
+        toast(select.value === 'afgehandeld' ? 'Afgehandeld.' : 'Status aangepast.', 'success');
+        applyFilter();
+      });
+
+      card.querySelector('[data-add-team]')?.addEventListener('click', async (event) => {
+        const button = event.currentTarget as HTMLButtonElement;
+        button.disabled = true;
+        const result = await api('POST', `/beheer/api/inbox/${id}/team`);
+        if (!result.ok) {
+          button.disabled = false;
+          return;
+        }
+        button.textContent = 'Toegevoegd ✓';
+        toast('Toegevoegd aan Vrijwilligers als ontwerp. Vul daar een foto en voorstelling aan, en publiceer.', 'success');
+      });
+
+      card.querySelector('[data-delete]')?.addEventListener('click', async () => {
+        const name = card.querySelector('h2')?.textContent ?? 'deze aanmelding';
+        if (!window.confirm(`De aanmelding van ${name} definitief verwijderen?`)) return;
+        const result = await api('DELETE', `/beheer/api/inbox/${id}`);
+        if (!result.ok) return;
+        card.remove();
+        toast('Aanmelding verwijderd.', 'success');
+        applyFilter();
+      });
+    });
+
+    applyFilter();
+  </script>
+</AdminLayout>

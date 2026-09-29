@@ -1,0 +1,100 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Logo from '../../components/Logo.astro';
+import Arrow from '../../components/Arrow.astro';
+import { loadDocuments } from '../../lib/content';
+import { hasPhoto, paragraphs, phoneHref } from '../../lib/site';
+
+const docs = await loadDocuments(Astro.locals.draft ? 'draft' : 'published');
+const activity = docs.activities.find((item) => item.slug === Astro.params.slug);
+if (!activity) return Astro.rewrite('/404');
+
+const others = docs.activities.filter((item) => item.slug !== activity.slug);
+const { practical } = docs;
+const emailHref = `mailto:${encodeURIComponent(practical.email)}?subject=${encodeURIComponent(`Vraag over ${activity.title}`)}`;
+---
+<PublicLayout docs={docs} title={`${activity.title} — De Rode Lotus`} description={activity.description} plainNav>
+  <article class="detail">
+    <header class="detail-hero">
+      <div class="detail-intro">
+        <a class="back-link" href="/#wat-we-doen">← Alle activiteiten</a>
+        <h1>{activity.title}</h1>
+        <p class="detail-lead">{activity.description}</p>
+        {activity.when && <p class="detail-when"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 6v4l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>{activity.when}</p>}
+        <div class="actions">
+          <a class="button" href={phoneHref(practical.phoneInternational)}>Bel {practical.phoneDisplay}</a>
+          <a class="button ghost" href={emailHref}>Stel een vraag</a>
+        </div>
+      </div>
+      <figure class="detail-photo">
+        {hasPhoto(activity.photo) ? <img src={activity.photo} width="800" height="600" decoding="async" fetchpriority="high" alt={activity.photoAlt} /> : <span class="photo-placeholder" aria-hidden="true"><Logo id="ph-detail" /></span>}
+      </figure>
+    </header>
+
+    <div class="detail-body">
+      {activity.blocks.map((block, index) => block.type === 'text'
+        ? <section class="detail-text">
+            {block.heading && <h2>{block.heading}</h2>}
+            {paragraphs(block.text).map((part) => <p>{part}</p>)}
+          </section>
+        : <section class="detail-gallery" aria-label={block.heading || `Foto's ${activity.title}`}>
+            {block.heading && <h2>{block.heading}</h2>}
+            <ul class="gallery" data-gallery={String(index)}>
+              {block.photos.map((photo) => <li><button type="button" data-full={photo.src} data-alt={photo.alt}><img src={photo.src} alt={photo.alt} loading="lazy" decoding="async" width="400" height="300" /></button></li>)}
+            </ul>
+          </section>)}
+    </div>
+  </article>
+
+  {others.length > 0 && <section class="section more-activities" aria-labelledby="more-title">
+    <h2 id="more-title">Ook bij De Rode Lotus</h2>
+    <ul>
+      {others.map((item) => <li><a href={`/activiteiten/${item.slug}`}><span><strong>{item.title}</strong>{item.when && <small>{item.when}</small>}</span><Arrow /></a></li>)}
+    </ul>
+  </section>}
+
+  <dialog class="lightbox" aria-label="Foto">
+    <button class="dialog-close" type="button" data-close aria-label="Sluiten"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg></button>
+    <button class="lightbox-nav prev" type="button" data-step="-1" aria-label="Vorige foto">‹</button>
+    <figure><img alt="" /><figcaption></figcaption></figure>
+    <button class="lightbox-nav next" type="button" data-step="1" aria-label="Volgende foto">›</button>
+  </dialog>
+</PublicLayout>
+
+<script>
+  const lightbox = document.querySelector<HTMLDialogElement>('.lightbox');
+  const image = lightbox?.querySelector('img');
+  const caption = lightbox?.querySelector('figcaption');
+  let items: HTMLButtonElement[] = [];
+  let current = 0;
+
+  const show = (index: number) => {
+    if (!image || !caption || items.length === 0) return;
+    current = (index + items.length) % items.length;
+    const item = items[current];
+    image.src = item.dataset.full ?? '';
+    image.alt = item.dataset.alt ?? '';
+    caption.textContent = item.dataset.alt ?? '';
+    lightbox?.classList.toggle('single', items.length === 1);
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((gallery) => {
+    const buttons = [...gallery.querySelectorAll<HTMLButtonElement>('button[data-full]')];
+    buttons.forEach((button, index) =>
+      button.addEventListener('click', () => {
+        items = buttons;
+        show(index);
+        lightbox?.showModal();
+      }),
+    );
+  });
+  lightbox?.querySelector('[data-close]')?.addEventListener('click', () => lightbox.close());
+  lightbox?.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((button) => button.addEventListener('click', () => show(current + Number(button.dataset.step))));
+  lightbox?.addEventListener('click', (event) => {
+    if (event.target === lightbox) lightbox.close();
+  });
+  lightbox?.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') show(current + 1);
+    if (event.key === 'ArrowLeft') show(current - 1);
+  });
+</script>

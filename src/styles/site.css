@@ -87,12 +87,13 @@ button { font: inherit; }
 .practical-social:hover { text-decoration-color: var(--white); }
 .practical-social svg { width: 1.5rem; height: 1.5rem; flex: 0 0 auto; padding: .15rem; border-radius: 50%; color: var(--blue-dark); background: var(--white); }
 .practical h2 { max-width: 13ch; margin: 0; font-size: clamp(2.8rem, 5vw, 4.7rem); line-height: .98; letter-spacing: -.03em; text-wrap: balance; }
-.hours { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(255,255,255,.24); }
-.hours article { padding: 1.55rem 1.25rem 1.8rem; border-right: 1px solid rgba(255,255,255,.24); }
-.hours article:last-child { border-right: 0; }
+.hours { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.hours li { position: relative; display: flex; flex-direction: column; padding: 1.4rem 1.35rem 1.5rem; border: 1px solid rgba(255,255,255,.14); border-radius: 18px; background: rgba(255,255,255,.06); }
+.hours li[data-today] { border-color: #f5d37e; background: rgba(245,211,126,.1); }
 .hours strong { display: block; font-size: 1.45rem; }
-.hour-time { display: block; margin-top: .35rem; color: #f5d37e; font-weight: 700; }
-.hours p { margin: .8rem 0 0; color: #d7e0e8; font-size: .9rem; }
+.hour-time { display: block; margin-top: .35rem; color: #f5d37e; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hours p { margin: .8rem 0 0; padding-top: .8rem; border-top: 1px solid rgba(255,255,255,.14); color: #d7e0e8; font-size: .9rem; }
+.today-badge { position: absolute; top: 1.2rem; right: 1.2rem; padding: .2rem .6rem; border-radius: 999px; color: var(--blue-dark); background: #f5d37e; font-size: .75rem; font-weight: 800; }
 .story { display: grid; grid-template-columns: 1.1fr .9fr; min-height: 600px; background: var(--soft); }
 .story-photo img { width: 100%; height: 100%; object-fit: cover; }
 .story-copy { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: clamp(3rem, 7vw, 7rem); }
@@ -142,9 +143,6 @@ details p { margin: -.35rem 2.8rem 1.2rem 0; color: var(--muted); }
   .quick article:last-child { border-bottom: 0; }
   .services { grid-template-columns: 1fr; }
   .service, .service:nth-child(even), .service:nth-child(odd) { padding: 1.1rem 0; border-right: 0; }
-  .hours { grid-template-columns: 1fr; }
-  .hours article { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.24); }
-  .hours article:last-child { border-bottom: 0; }
   .story, .help, .faq { grid-template-columns: 1fr; }
   .faq { gap: 2rem; }
   .story-photo { min-height: 450px; }

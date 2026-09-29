@@ -1,0 +1,105 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Foto’s" active="/beheer/fotos">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Bibliotheek</p>
+      <h1>Foto’s</h1>
+      <p class="lead">Alle foto’s die je op de website kan gebruiken. Sleep er zoveel in als je wil; daarna kies je ze bij een activiteit, vrijwilliger of fotoblok.</p>
+    </div>
+  </header>
+
+  <div data-upload></div>
+
+  <section class="library" aria-labelledby="library-title">
+    <div class="library-head">
+      <h2 id="library-title" class="section-title">In de bibliotheek <span data-count></span></h2>
+      <label class="search"><span class="sr-only">Zoek op beschrijving</span><input type="search" placeholder="Zoek op beschrijving…" data-search /></label>
+    </div>
+    <p class="help">Een korte beschrijving helpt mensen die een schermlezer gebruiken en maakt foto’s makkelijker terug te vinden.</p>
+    <ul class="media-grid" data-grid><li class="empty">Foto’s laden…</li></ul>
+  </section>
+
+  <script>
+    import { api, toast } from '../../scripts/admin/api';
+    import { h } from '../../scripts/admin/dom';
+    import { forgetMedia, loadMedia, type MediaItem } from '../../scripts/admin/media';
+    import { dropzone, thumb } from '../../scripts/admin/picker';
+
+    const grid = document.querySelector<HTMLUListElement>('[data-grid]')!;
+    const count = document.querySelector<HTMLElement>('[data-count]')!;
+    const search = document.querySelector<HTMLInputElement>('[data-search]')!;
+    let items: MediaItem[] = [];
+
+    const size = (bytes: number) => (bytes ? `${Math.max(1, Math.round(bytes / 1024))} kB` : '');
+
+    function card(item: MediaItem): HTMLLIElement {
+      const altId = `alt-${item.id}`;
+      let savedAlt = item.alt;
+      const alt = h('input', { id: altId, type: 'text', maxlength: 200, value: item.alt, placeholder: 'Wat staat erop?', readonly: item.builtIn });
+      const saveAlt = async () => {
+        const next = alt.value.trim();
+        if (next === savedAlt) return;
+        const result = await api('PATCH', `/beheer/api/media/${encodeURIComponent(item.id)}`, { alt: next });
+        if (!result.ok) return;
+        savedAlt = next;
+        items = items.map((entry) => (entry.id === item.id ? { ...entry, alt: next } : entry));
+        forgetMedia();
+        toast('Beschrijving bewaard.', 'success');
+      };
+      if (!item.builtIn) {
+        alt.addEventListener('change', () => void saveAlt());
+        alt.addEventListener('keydown', (event) => event.key === 'Enter' && alt.blur());
+      }
+      const remove = async () => {
+        if (!window.confirm('Deze foto definitief verwijderen?')) return;
+        const result = await api('DELETE', `/beheer/api/media/${encodeURIComponent(item.id)}`);
+        if (!result.ok) return;
+        items = items.filter((entry) => entry.id !== item.id);
+        forgetMedia();
+        render();
+        toast('Foto verwijderd.', 'success');
+      };
+      return h(
+        'li',
+        { class: 'media-card' },
+        h('a', { class: 'media-thumb', href: item.path, target: '_blank', rel: 'noopener', 'aria-label': 'Foto groot openen' }, thumb(item)),
+        h(
+          'div',
+          { class: 'media-body' },
+          h('label', { for: altId }, 'Beschrijving'),
+          alt,
+          h(
+            'div',
+            { class: 'media-meta' },
+            h('span', {}, `${item.width} × ${item.height}${item.bytes ? ` · ${size(item.bytes)}` : ''}`),
+            item.builtIn
+              ? h('span', { class: 'pill', title: 'Meegeleverd met de website, kan niet verwijderd worden' }, 'Vaste foto')
+              : h('button', { type: 'button', class: 'btn-link danger', onclick: remove }, 'Verwijderen'),
+          ),
+        ),
+      );
+    }
+
+    function render(): void {
+      const query = search.value.trim().toLowerCase();
+      const visible = query ? items.filter((item) => item.alt.toLowerCase().includes(query)) : items;
+      count.textContent = `(${items.length})`;
+      grid.replaceChildren(...(visible.length ? visible.map(card) : [h('li', { class: 'empty' }, query ? 'Geen foto’s met die beschrijving.' : 'Nog geen foto’s.')]));
+    }
+
+    document.querySelector('[data-upload]')?.replaceWith(
+      dropzone(async () => {
+        items = await loadMedia();
+        render();
+        grid.querySelector<HTMLInputElement>('.media-card input')?.focus();
+      }),
+    );
+    search.addEventListener('input', render);
+    void loadMedia(true).then((loaded) => {
+      items = loaded;
+      render();
+    });
+  </script>
+</AdminLayout>

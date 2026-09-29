@@ -1,19 +1,7 @@
-import previewPhotos from '../data/preview-photos.json';
+import { PHOTO_PATTERN } from './schema';
 
-export function photoSource(upload: string, preview: string): string {
-  return /^\/uploads\/[a-zA-Z0-9/_-]+\.(?:avif|jpe?g|png|webp)$/.test(upload)
-    ? upload
-    : preview;
-}
-
-export function activityPreview(index: number): string {
-  return previewPhotos.activities[index] ?? '';
-}
-
-export function activityHref(target: string, email: string): string {
-  if (target === 'faq') return '#vragen';
-  if (target === 'practical') return '#praktisch';
-  return `mailto:${encodeURIComponent(email)}`;
+export function hasPhoto(path: string | undefined): path is string {
+  return typeof path === 'string' && PHOTO_PATTERN.test(path);
 }
 
 export function phoneHref(phone: string): string {
@@ -23,4 +11,17 @@ export function phoneHref(phone: string): string {
 export function routeHref(street: string, postalCode: string, city: string): string {
   const address = `${street}, ${postalCode} ${city}`;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
+/** Tekst met lege regels wordt opgesplitst in alinea's (geen HTML uit de CMS). */
+export function paragraphs(text: string): string[] {
+  return text
+    .split(/\n\s*\n/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+/** Datum van vandaag in Brussel, als JJJJ-MM-DD. */
+export function todayInBrussels(now = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Brussels' }).format(now);
 }

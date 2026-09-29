@@ -1,0 +1,80 @@
+---
+import '@fontsource/atkinson-hyperlegible/400.css';
+import '@fontsource/atkinson-hyperlegible/700.css';
+import '../../styles/admin.css';
+import Logo from '../../components/Logo.astro';
+import { authConfigured, fingerprint, startSession, verifyPassword } from '../../lib/auth';
+import { clientIp, safeReturnUrl, sameOrigin } from '../../lib/http';
+import { recordEvent, underLimit } from '../../lib/ratelimit';
+
+const WINDOW = 15 * 60;
+const returnUrl = safeReturnUrl(Astro.url.searchParams.get('terug'), Astro.url);
+let error = '';
+
+if (Astro.locals.admin && Astro.request.method === 'GET') return Astro.redirect(returnUrl, 303);
+
+if (!authConfigured()) {
+  error = 'Er is nog geen beheerderswachtwoord ingesteld. Zie BEHEER.md (npm run admin:password).';
+} else if (Astro.request.method === 'POST') {
+  const ipKey = `login:${await fingerprint(clientIp(Astro.request))}`;
+  const allowed = await underLimit([
+    { bucket: ipKey, max: 5, windowSeconds: WINDOW },
+    { bucket: 'login:alle', max: 50, windowSeconds: WINDOW },
+  ]);
+  if (!sameOrigin(Astro.request)) {
+    error = 'Ongeldig verzoek. Laad de pagina opnieuw.';
+  } else if (!allowed) {
+    Astro.response.status = 429;
+    error = 'Te veel pogingen. Wacht een kwartiertje en probeer opnieuw.';
+  } else {
+    const form = await Astro.request.formData().catch(() => null);
+    const password = String(form?.get('password') ?? '').slice(0, 256);
+    if (password && (await verifyPassword(password))) {
+      await startSession(Astro.cookies, Astro.url);
+      return Astro.redirect(returnUrl, 303);
+    }
+    await recordEvent([ipKey, 'login:alle']);
+    Astro.response.status = 401;
+    error = 'Dat wachtwoord klopt niet.';
+  }
+}
+---
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Inloggen — Beheer De Rode Lotus</title>
+  </head>
+  <body class="login-page">
+    <main class="login-card">
+      <Logo id="login-logo" class="login-logo" />
+      <h1>Beheer</h1>
+      <p class="login-lead">De Rode Lotus</p>
+      {error && <p class="login-error" role="alert">{error}</p>}
+      <form method="post">
+        <input type="text" name="username" value="beheer" autocomplete="username" hidden />
+        <label for="password">Wachtwoord</label>
+        <div class="password-field">
+          <input id="password" name="password" type="password" autocomplete="current-password" required autofocus maxlength="256" />
+          <button type="button" class="reveal" aria-pressed="false" aria-controls="password">Toon</button>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Inloggen</button>
+      </form>
+      <a class="login-back" href="/">← Naar de website</a>
+    </main>
+    <script>
+      const input = document.querySelector<HTMLInputElement>('#password');
+      const reveal = document.querySelector<HTMLButtonElement>('.reveal');
+      reveal?.addEventListener('click', () => {
+        if (!input) return;
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        reveal.textContent = show ? 'Verberg' : 'Toon';
+        reveal.setAttribute('aria-pressed', String(show));
+      });
+    </script>
+  </body>
+</html>

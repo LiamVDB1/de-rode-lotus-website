@@ -1,34 +1,62 @@
 [
   {
+    "slug": "weggeefwinkel",
     "title": "Weggeefwinkel",
     "description": "Kledij en spullen gratis meenemen of komen brengen. Op dinsdag en zaterdag, van 10u tot 12u en van 13u tot 17u.",
+    "when": "Dinsdag en zaterdag · 10u–12u en 13u–17u",
     "photo": "/uploads/weggeefwinkel.webp",
     "photoAlt": "Bezoeker bij de rekken met kledij in de weggeefwinkel",
-    "linkText": "Hoe werkt het?",
-    "linkTarget": "faq"
+    "blocks": [
+      {
+        "type": "text",
+        "heading": "Hoe werkt het?",
+        "text": "Je kiest wat je nodig hebt uit de rekken met kledij en spullen. Alles is gratis.\n\nHeb je zelf spullen over? Bel of mail eerst even, zodat we weten wanneer iemand er is en wat we kunnen gebruiken."
+      }
+    ]
   },
   {
+    "slug": "voedselbedeling",
     "title": "Voedselbedeling",
     "description": "Op vrijdag van 10u tot 13u. Voor voedselhulp heb je een doorverwijsbrief nodig.",
+    "when": "Vrijdag · 10u–13u",
     "photo": "",
     "photoAlt": "Vrijwilligers verwerken verse voeding",
-    "linkText": "Praktische informatie",
-    "linkTarget": "practical"
+    "blocks": [
+      {
+        "type": "text",
+        "heading": "Wat heb je nodig?",
+        "text": "Voor voedselhulp heb je een doorverwijsbrief nodig. Twijfel je of dat voor jou geldt? Neem vooraf contact op, dan bekijken we het samen."
+      }
+    ]
   },
   {
+    "slug": "spelotheek",
     "title": "Spelotheek",
     "description": "Speelgoed lenen en samen spelen. Op woensdag van 13u tot 16u en op zaterdag van 10u tot 12u.",
+    "when": "Woensdag 13u–16u · zaterdag 10u–12u",
     "photo": "/uploads/spelotheek.webp",
     "photoAlt": "Kinderen knutselen met strijkkralen aan een grote tafel",
-    "linkText": "Bekijk de uren",
-    "linkTarget": "practical"
+    "blocks": [
+      {
+        "type": "text",
+        "heading": "Speelgoed lenen",
+        "text": "In de spelotheek kun je speelgoed lenen en samen spelen. Kinderen en ouders zijn welkom."
+      }
+    ]
   },
   {
+    "slug": "creatief-atelier",
     "title": "Creatief atelier",
     "description": "Samen naaien, haken, breien en borduren. Op dinsdag van 13u tot 16u en op woensdag van 9u tot 12u.",
+    "when": "Dinsdag 13u–16u · woensdag 9u–12u",
     "photo": "/uploads/creatief-atelier.webp",
     "photoAlt": "Een bezoekster naait aan een jas in het creatief atelier",
-    "linkText": "Bekijk de uren",
-    "linkTarget": "practical"
+    "blocks": [
+      {
+        "type": "text",
+        "heading": "Samen maken",
+        "text": "Naaien, haken, breien of borduren: je hoeft het nog niet te kunnen. We leren van elkaar en drinken er een koffie bij."
+      }
+    ]
   }
 ]

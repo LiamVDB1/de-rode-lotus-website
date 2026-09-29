@@ -1,0 +1,100 @@
+---
+import '@fontsource/atkinson-hyperlegible/400.css';
+import '@fontsource/atkinson-hyperlegible/700.css';
+import '../styles/site.css';
+import '../styles/pages.css';
+import Logo from '../components/Logo.astro';
+import DonateDialog from '../components/DonateDialog.astro';
+import type { Documents } from '../lib/schema';
+import { phoneHref } from '../lib/site';
+
+interface Props {
+  docs: Documents;
+  title: string;
+  description: string;
+  /** Pagina's zonder donkere hero krijgen een effen menubalk. */
+  plainNav?: boolean;
+}
+const { docs, title, description, plainNav = false } = Astro.props;
+const { practical, donate } = docs;
+const emailHref = `mailto:${encodeURIComponent(practical.email)}`;
+const phoneLink = phoneHref(practical.phoneInternational);
+const donateDialog = donate.enabled && donate.iban !== '';
+const draft = Astro.locals.draft;
+---
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#173252" />
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{title}</title>
+  </head>
+  <body class:list={{ 'plain-nav': plainNav }}>
+    <a class="skip-link" href="#inhoud">Ga naar de inhoud</a>
+    {draft && <div class="draft-bar" role="status"><span><strong>Voorbeeld</strong> · je ziet ook wijzigingen die nog niet gepubliceerd zijn.</span><a href="/beheer">Terug naar beheer</a>{!Astro.url.hostname.startsWith('preview.') && <form method="post" action="/beheer/voorbeeld"><input type="hidden" name="aan" value="0" /><input type="hidden" name="naar" value={Astro.url.pathname} /><button type="submit">Voorbeeld uitzetten</button></form>}</div>}
+    <div class="nav-wrap">
+      <header class="site-nav" data-menu="closed" aria-label="Hoofdnavigatie">
+        <a class="brand" href="/" aria-label="De Rode Lotus, naar de startpagina">
+          <Logo id="nav-logo" />
+          <strong>De Rode Lotus</strong>
+        </a>
+        <nav class="nav-links" id="primary-menu" aria-label="Hoofdmenu">
+          <a href="/#wat-we-doen">Wat we doen</a>
+          <a href="/#praktisch">Praktisch</a>
+          <a href="/vrijwilligers">Vrijwilligers</a>
+          <a href="/#vragen">Vragen</a>
+          {donateDialog && <a class="donate" href="#doneren" data-open-donate>Doneer</a>}
+          <a class="contact" href={emailHref}>Contact</a>
+        </nav>
+        <button class="mobile-menu" type="button" aria-expanded="false" aria-controls="primary-menu" aria-label="Menu openen">
+          <svg class="menu-open-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg class="menu-close-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+    </div>
+
+    <main id="inhoud"><slot /></main>
+
+    <footer>
+      <div class="footer-main">
+        <div class="footer-brand">
+          <Logo id="footer-logo" class="footer-logo" />
+          <div><strong>De Rode Lotus</strong><p>{practical.street} · {practical.postalCode} {practical.city} · <a href={phoneLink}>{practical.phoneDisplay}</a> · <a href={emailHref}>{practical.email}</a></p></div>
+        </div>
+        <div class="footer-social">
+          {donateDialog && <a href="#doneren" data-open-donate><span>Doe een gift</span></a>}
+          <a href={practical.facebookUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V10.5H7.8v3h2.6V21h3.1Z" fill="currentColor"/></svg><span>Facebook</span></a>
+          {practical.instagramUrl && <a href={practical.instagramUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></svg><span>Instagram</span></a>}
+        </div>
+      </div>
+      <p class="footer-bottom">vzw De Rode Lotus · Weggeefwinkel en ontmoetingsplek in de Brugse Poort</p>
+    </footer>
+
+    {donateDialog && <DonateDialog donate={donate} />}
+
+    <script>
+      const nav = document.querySelector<HTMLElement>('.site-nav');
+      const menuButton = document.querySelector<HTMLButtonElement>('.mobile-menu');
+      const setMenu = (open: boolean) => {
+        if (!nav || !menuButton) return;
+        nav.dataset.menu = open ? 'open' : 'closed';
+        menuButton.setAttribute('aria-expanded', String(open));
+        menuButton.setAttribute('aria-label', open ? 'Menu sluiten' : 'Menu openen');
+      };
+      menuButton?.addEventListener('click', () => setMenu(nav?.dataset.menu !== 'open'));
+      nav?.querySelectorAll<HTMLAnchorElement>('.nav-links a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
+      document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || nav?.dataset.menu !== 'open') return;
+        setMenu(false);
+        menuButton?.focus();
+      });
+      document.addEventListener('pointerdown', (event) => {
+        if (nav?.dataset.menu === 'open' && !nav.contains(event.target as Node)) setMenu(false);
+      });
+    </script>
+  </body>
+</html>

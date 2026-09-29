@@ -1,0 +1,20 @@
+---
+import { env } from 'cloudflare:workers';
+import { isProductionHost } from '../../lib/http';
+
+interface Props {
+  path?: string;
+  class?: string;
+  label?: string;
+}
+const { path = '/', class: className = 'btn btn-ghost', label = 'Bekijk voorbeeld' } = Astro.props;
+// Op het echte domein bestaat preview.derodelotus.com; elders zet een cookie de voorbeeldmodus aan.
+const previewOrigin = isProductionHost(Astro.url) ? `https://preview.${env.COOKIE_DOMAIN}` : '';
+---
+{previewOrigin
+  ? <a class={className} href={`${previewOrigin}${path}`} target="_blank" rel="noopener">{label} <span aria-hidden="true">↗</span></a>
+  : <form class="inline-form" method="post" action="/beheer/voorbeeld" target="_blank">
+      <input type="hidden" name="aan" value="1" />
+      <input type="hidden" name="naar" value={path} />
+      <button class={className} type="submit">{label} <span aria-hidden="true">↗</span></button>
+    </form>}

@@ -1,0 +1,98 @@
+---
+import { env } from 'cloudflare:workers';
+import PublicLayout from '../layouts/PublicLayout.astro';
+import Logo from '../components/Logo.astro';
+import { loadDocuments } from '../lib/content';
+import { hasPhoto, paragraphs } from '../lib/site';
+
+const docs = await loadDocuments(Astro.locals.draft ? 'draft' : 'published');
+const { team, home, practical } = docs;
+const showCat = hasPhoto(home.catPhoto) && home.catName !== '';
+const initials = (name: string) => name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+const privacyMail = `mailto:${encodeURIComponent(practical.email)}?subject=${encodeURIComponent('Mijn gegevens verwijderen')}`;
+---
+<PublicLayout docs={docs} title={`${team.title} — De Rode Lotus`} description={team.intro} plainNav>
+  <section class="page-head">
+    <h1>{team.title}</h1>
+    {paragraphs(team.intro).map((part) => <p>{part}</p>)}
+    <a class="button" href="#aanmelden">{team.formTitle}</a>
+  </section>
+
+  <section class="team" aria-label="Vrijwilligers">
+    <ul class="team-grid">
+      {team.members.map((member, index) => <li class="member">
+        {hasPhoto(member.photo)
+          ? <img src={member.photo} alt={member.photoAlt} loading={index < 4 ? 'eager' : 'lazy'} decoding="async" width="400" height="400" />
+          : <span class="member-initials" aria-hidden="true">{initials(member.name)}</span>}
+        <h2>{member.name}</h2>
+        {member.role && <p class="member-role">{member.role}</p>}
+        {member.text && <div class="member-text">{paragraphs(member.text).map((part) => <p>{part}</p>)}</div>}
+      </li>)}
+      {showCat && <li class="member member-cat">
+        <img src={home.catPhoto} alt={home.catPhotoAlt} loading="lazy" decoding="async" width="400" height="400" />
+        <h2>{home.catName}</h2>
+        <p class="member-role">Huiskat en officieus hoofd onthaal</p>
+        {home.catText && <p>{home.catText}</p>}
+      </li>}
+    </ul>
+  </section>
+
+  <section class="signup" id="aanmelden" aria-labelledby="signup-title">
+    <div class="signup-intro">
+      <Logo id="signup-logo" class="signup-logo" />
+      <h2 id="signup-title">{team.formTitle}</h2>
+      {paragraphs(team.formIntro).map((part) => <p>{part}</p>)}
+    </div>
+    <form class="signup-form" method="post" action="/api/vrijwilliger" novalidate>
+      <div class="field"><label for="v-name">Naam</label><input id="v-name" name="name" autocomplete="name" required maxlength="80" /></div>
+      <div class="field-row">
+        <div class="field"><label for="v-email">E-mail</label><input id="v-email" name="email" type="email" autocomplete="email" required maxlength="200" /></div>
+        <div class="field"><label for="v-phone">Telefoon <span class="optional">(niet verplicht)</span></label><input id="v-phone" name="phone" type="tel" autocomplete="tel" maxlength="30" /></div>
+      </div>
+      <div class="field"><label for="v-availability">Wanneer kan je? <span class="optional">(niet verplicht)</span></label><input id="v-availability" name="availability" maxlength="300" placeholder="Bv. dinsdagvoormiddag of af en toe op zaterdag" /></div>
+      <div class="field"><label for="v-message">Wat wil je graag doen? <span class="optional">(niet verplicht)</span></label><textarea id="v-message" name="message" rows="4" maxlength="2000"></textarea></div>
+      <div class="hp" aria-hidden="true"><label for="v-website">Website</label><input id="v-website" name="website" tabindex="-1" autocomplete="off" /></div>
+      <label class="consent"><input type="checkbox" name="consent" value="ja" required /><span>Ik geef De Rode Lotus toestemming om mijn gegevens te bewaren om contact met mij op te nemen over vrijwilligerswerk. Je kunt ze altijd laten verwijderen via <a href={privacyMail}>{practical.email}</a>.</span></label>
+      <div class="cf-turnstile" data-sitekey={env.TURNSTILE_SITE_KEY} data-language="nl"></div>
+      <p class="form-status" role="status" aria-live="polite"></p>
+      <button class="button" type="submit">Verstuur aanmelding</button>
+    </form>
+  </section>
+</PublicLayout>
+
+<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script>
+  const form = document.querySelector<HTMLFormElement>('.signup-form');
+  const status = form?.querySelector<HTMLElement>('.form-status');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!status) return;
+    form.querySelectorAll('[aria-invalid]').forEach((element) => element.removeAttribute('aria-invalid'));
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (button) button.disabled = true;
+    status.className = 'form-status';
+    status.textContent = 'Even geduld…';
+    try {
+      const response = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+      const result = (await response.json()) as { ok: boolean; message?: string; issues?: { path: string; message: string }[] };
+      if (result.ok) {
+        form.reset();
+        form.innerHTML = '<div class="form-done"><strong>Bedankt!</strong><p>We hebben je aanmelding goed ontvangen en nemen snel contact met je op.</p></div>';
+        return;
+      }
+      for (const issue of result.issues ?? []) {
+        const input = form.querySelector<HTMLElement>(`[name="${issue.path}"]`);
+        input?.setAttribute('aria-invalid', 'true');
+      }
+      status.classList.add('error');
+      status.textContent = [result.message, ...(result.issues ?? []).map((issue) => issue.message)].filter(Boolean).join(' ');
+    } catch {
+      status.classList.add('error');
+      status.textContent = 'Versturen lukte niet. Controleer je verbinding of bel ons.';
+    } finally {
+      if (button) button.disabled = false;
+      (window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset();
+    }
+  });
+</script>

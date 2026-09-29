@@ -4,20 +4,28 @@
   "type": "module",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev --host 127.0.0.1",
-    "build": "node scripts/check-content.mjs && node scripts/check-cms.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
-    "build:public": "node scripts/check-content.mjs && node scripts/check-cms.mjs && node scripts/check-publication.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "build": "node scripts/check-content.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "build:public": "node scripts/check-content.mjs && node scripts/check-publication.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview --host 127.0.0.1",
-    "check": "ASTRO_TELEMETRY_DISABLED=1 astro check && node scripts/check-content.mjs && node scripts/check-cms.mjs",
-    "check:content": "node scripts/check-content.mjs"
+    "check": "ASTRO_TELEMETRY_DISABLED=1 astro check && node scripts/check-content.mjs",
+    "check:content": "node scripts/check-content.mjs",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:staging": "wrangler d1 migrations apply DB --remote --env staging",
+    "db:migrate:production": "wrangler d1 migrations apply DB --remote",
+    "deploy:staging": "node scripts/check-content.mjs && CLOUDFLARE_ENV=staging ASTRO_TELEMETRY_DISABLED=1 astro build && wrangler deploy",
+    "admin:password": "node scripts/set-admin-password.mjs"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^14.3.3",
     "@fontsource/atkinson-hyperlegible": "^5.2.0",
-    "astro": "^7.3.5"
+    "astro": "^7.3.5",
+    "qrcode": "^1.5.4",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.0",
+    "@types/qrcode": "^1.5.6",
     "typescript": "^5.0.0",
-    "wrangler": "^4.141.0",
-    "yaml": "^2.9.1"
+    "wrangler": "^4.141.0"
   }
 }
