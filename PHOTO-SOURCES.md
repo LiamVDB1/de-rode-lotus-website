@@ -11,11 +11,10 @@ Deze foto's komen van de [Facebook-pagina van De Rode Lotus](https://www.faceboo
 | `weggeefwinkel.webp` | Wat we doen → Weggeefwinkel | 1247512817553983 | begin maart 2026 |
 | `spelotheek.webp` | Wat we doen → Spelotheek | 1247512977553967 | begin maart 2026 |
 | `creatief-atelier.webp` | Wat we doen → Creatief atelier | 1247513050887293 | begin maart 2026 |
+| `voedselbedeling.webp` | Wat we doen → Voedselbedeling | 1261091632862768 | 20 maart 2026 |
 
 Foto-URL: `https://www.facebook.com/photo/?fbid=<fbid>`.
 
-## Nog zonder foto
+## Foto's vervangen of toevoegen
 
-De voedselbedeling heeft nog geen foto. Upload er een via **Beheer → Foto’s** en kies ze bij de activiteit.
-
-Wanneer een foto wordt vervangen of toegevoegd, noteer hier: bestandsnaam, maker/bron, wie toestemming gaf, datum en eventuele voorwaarden.
+Upload nieuwe foto's via **Beheer → Foto’s** en kies ze bij de activiteit. Wanneer een foto wordt vervangen of toegevoegd, noteer hier: bestandsnaam, maker/bron, wie toestemming gaf, datum en eventuele voorwaarden.

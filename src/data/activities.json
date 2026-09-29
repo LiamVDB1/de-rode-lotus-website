@@ -19,8 +19,8 @@
     "title": "Voedselbedeling",
     "description": "Op vrijdag van 10u tot 13u. Voor voedselhulp heb je een doorverwijsbrief nodig.",
     "when": "Vrijdag · 10u–13u",
-    "photo": "",
-    "photoAlt": "Vrijwilligers verwerken verse voeding",
+    "photo": "/uploads/voedselbedeling.webp",
+    "photoAlt": "Een ingepakt voedselpakket met een label \"Fijn Suikerfeest!\" en het logo van De Rode Lotus",
     "blocks": [
       {
         "type": "text",
