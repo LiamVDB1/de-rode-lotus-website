@@ -30,14 +30,6 @@ const showNotice = notice.enabled && notice.title.trim() && notice.message.trim(
     <title>{home.pageTitle}</title>
   </head>
   <body>
-    <!--
-    THESIS: Vertrouwen begint bij echte mensen en praktische zekerheid; de vertrouwde buurtorganisatiesite wordt helder en direct uitgevoerd.
-    OWN-WORLD: Warm wit, diepblauw, lotusrood, echte documentaire fotografie, zwevende witte navigatie en een overlappende informatiebalk.
-    STORY: De bezoeker ziet wie hier is, vindt adres en uren, begrijpt de activiteiten en kan contact opnemen of meehelpen.
-    FIRST VIEWPORT: Eén echte groepsfoto vult de hero; links staan witte welkomtekst en acties, onderaan overlapt de praktische informatiebalk.
-    FORM: De bestaande, door Liam gekozen vormgeving van De Vertrouwde Buurtorganisatie is de visuele basis.
-    FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
-    -->
     <a class="skip-link" href="#inhoud">Ga naar de inhoud</a>
     <div class="nav-wrap">
       <header class="site-nav" data-menu="closed" aria-label="Hoofdnavigatie">
@@ -50,6 +42,7 @@ const showNotice = notice.enabled && notice.title.trim() && notice.message.trim(
           <a href="#praktisch">Praktisch</a>
           <a href="#helpen">Meehelpen</a>
           <a href="#vragen">Veelgestelde vragen</a>
+          <a href={practical.facebookUrl} target="_blank" rel="noopener noreferrer">Facebook</a>
           <a class="contact" href={emailHref}>Contact</a>
         </nav>
         <button class="mobile-menu" type="button" aria-expanded="false" aria-controls="primary-menu" aria-label="Menu openen">
@@ -103,7 +96,7 @@ const showNotice = notice.enabled && notice.title.trim() && notice.message.trim(
 
       <section class="practical" id="praktisch" aria-labelledby="hours-title">
         <div class="practical-inner">
-          <div class="section-head"><h2 id="hours-title">{practical.hoursTitle}</h2><p>{practical.hoursIntro}</p></div>
+          <div class="section-head"><h2 id="hours-title">{practical.hoursTitle}</h2><p>{practical.hoursIntro}</p><a class="practical-social" href={practical.facebookUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V10.5H7.8v3h2.6V21h3.1Z" fill="currentColor"/></svg><span>Uitzonderlijk gesloten? Dat lees je eerst op onze Facebook-pagina.</span></a></div>
           <div class="hours">
             {practical.hours.map((item) => <article><strong>{item.day}</strong><span class="hour-time">{item.time}</span><p>{item.activity}</p></article>)}
           </div>
@@ -120,17 +113,27 @@ const showNotice = notice.enabled && notice.title.trim() && notice.message.trim(
         <div class="help-actions">
           <a href={`mailto:${encodeURIComponent(practical.email)}?subject=Ik%20wil%20meehelpen`}><span>Ik wil vrijwilliger worden</span><svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
           <a href={phoneLink}><span>Ik wil iets brengen</span><svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          {practical.donateUrl && <a href={practical.donateUrl} target="_blank" rel="noopener noreferrer"><span>Ik wil een gift doen</span><svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>}
           <a href={emailHref}><span>Ik heb eerst een vraag</span><svg class="link-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         </div>
       </section>
 
-      <section class="section" id="vragen" aria-labelledby="faq-title">
+      <section class="section faq" id="vragen" aria-labelledby="faq-title">
         <div class="section-head"><h2 id="faq-title">{home.faqTitle}</h2><p>{home.faqIntro}</p></div>
-        {faq.map(({ question, answer }) => <details><summary>{question}</summary><p>{answer}</p></details>)}
+        <div class="faq-list">{faq.map(({ question, answer }) => <details><summary>{question}</summary><p>{answer}</p></details>)}</div>
       </section>
     </main>
 
-    <footer><div class="footer-main"><strong>De Rode Lotus</strong><span>{practical.street} · {practical.postalCode} {practical.city} · <a href={emailHref}>{practical.email}</a></span></div></footer>
+    <footer>
+      <div class="footer-main">
+        <div><strong>De Rode Lotus</strong><p>{practical.street} · {practical.postalCode} {practical.city} · <a href={phoneLink}>{practical.phoneDisplay}</a> · <a href={emailHref}>{practical.email}</a></p></div>
+        <div class="footer-social">
+          <a href={practical.facebookUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V10.5H7.8v3h2.6V21h3.1Z" fill="currentColor"/></svg><span>Volg ons op Facebook</span></a>
+          {practical.instagramUrl && <a href={practical.instagramUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></svg><span>Instagram</span></a>}
+        </div>
+      </div>
+      <p class="footer-bottom">vzw De Rode Lotus · Weggeefwinkel en ontmoetingsplek in de Brugse Poort</p>
+    </footer>
 
     <script>
       const nav = document.querySelector<HTMLElement>('.site-nav');

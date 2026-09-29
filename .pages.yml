@@ -125,6 +125,19 @@ content:
         label: "E-mailadres"
         type: string
         required: true
+      - name: facebookUrl
+        label: "Link naar de Facebook-pagina"
+        type: string
+        required: true
+        pattern: "^https://(www\\.)?facebook\\.com/.+$"
+      - name: instagramUrl
+        label: "Link naar Instagram (optioneel)"
+        type: string
+        pattern: "^$|^https://(www\\.)?instagram\\.com/.+$"
+      - name: donateUrl
+        label: "Link om een gift te doen (optioneel)"
+        type: string
+        pattern: "^$|^https://.+$"
       - name: hoursTitle
         label: "Titel openingsuren"
         type: string

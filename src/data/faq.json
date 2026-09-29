@@ -1,7 +1,7 @@
 [
   {
     "question": "Moet ik betalen in de weggeefwinkel?",
-    "answer": "Nee, de spullen zijn gratis."
+    "answer": "Nee, de spullen in de weggeefwinkel zijn gratis. Ook koffie, thee en de kapster op dinsdag zijn gratis."
   },
   {
     "question": "Kan ik zomaar naar de voedselbedeling komen?",
@@ -10,5 +10,9 @@
   {
     "question": "Kan ik spullen komen brengen?",
     "answer": "Bel of mail eerst even. Zo weet je wanneer iemand aanwezig is en welke spullen op dat moment bruikbaar zijn."
+  },
+  {
+    "question": "Hoe weet ik of jullie uitzonderlijk gesloten zijn?",
+    "answer": "Kijk op onze Facebook-pagina. Daar melden we sluitingsdagen, acties en activiteiten altijd eerst. Twijfel je nog? Bel ons gerust."
   }
 ]

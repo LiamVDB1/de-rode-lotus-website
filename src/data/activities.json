@@ -1,9 +1,9 @@
 [
   {
     "title": "Weggeefwinkel",
-    "description": "Kledij en spullen brengen of meenemen — en ondertussen iemand uit de buurt ontmoeten.",
-    "photo": "",
-    "photoAlt": "Kledingrekken in de weggeefwinkel",
+    "description": "Kledij en spullen gratis meenemen of komen brengen. Op dinsdag en zaterdag, van 10u tot 12u en van 13u tot 17u.",
+    "photo": "/uploads/weggeefwinkel.webp",
+    "photoAlt": "Bezoeker bij de rekken met kledij in de weggeefwinkel",
     "linkText": "Hoe werkt het?",
     "linkTarget": "faq"
   },
@@ -17,18 +17,18 @@
   },
   {
     "title": "Spelotheek",
-    "description": "Speelgoed lenen en ontdekken. Vraag ons wanneer je kunt langskomen.",
-    "photo": "",
-    "photoAlt": "Bezoeker bekijkt het aanbod van spellen en boeken",
-    "linkText": "Vraag naar de momenten",
-    "linkTarget": "email"
+    "description": "Speelgoed lenen en samen spelen. Op woensdag van 13u tot 16u en op zaterdag van 10u tot 12u.",
+    "photo": "/uploads/spelotheek.webp",
+    "photoAlt": "Kinderen knutselen met strijkkralen aan een grote tafel",
+    "linkText": "Bekijk de uren",
+    "linkTarget": "practical"
   },
   {
     "title": "Creatief atelier",
-    "description": "Samen naaien, haken, breien en borduren. Vraag ons wanneer je kunt aansluiten.",
-    "photo": "",
-    "photoAlt": "Creatieve materialen en boeken bij De Rode Lotus",
-    "linkText": "Vraag naar de activiteit",
-    "linkTarget": "email"
+    "description": "Samen naaien, haken, breien en borduren. Op dinsdag van 13u tot 16u en op woensdag van 9u tot 12u.",
+    "photo": "/uploads/creatief-atelier.webp",
+    "photoAlt": "Een bezoekster naait aan een jas in het creatief atelier",
+    "linkText": "Bekijk de uren",
+    "linkTarget": "practical"
   }
 ]

@@ -31,6 +31,9 @@ export function checkContent() {
   for (const key of ['street', 'postalCode', 'city', 'neighbourhood', 'phoneDisplay', 'phoneInternational', 'email', 'hoursTitle', 'hoursIntro']) requiredText(practical[key], `Praktisch: ${key}`);
   if (!/^\+[0-9]{8,15}$/.test(practical.phoneInternational)) errors.push('Internationaal telefoonnummer moet +32… zijn.');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(practical.email)) errors.push('E-mailadres is ongeldig.');
+  if (!/^https:\/\/(www\.)?facebook\.com\/.+$/.test(practical.facebookUrl ?? '')) errors.push('Facebook-link moet met https://www.facebook.com/ beginnen.');
+  if (practical.instagramUrl && !/^https:\/\/(www\.)?instagram\.com\/.+$/.test(practical.instagramUrl)) errors.push('Instagram-link moet met https://www.instagram.com/ beginnen.');
+  if (practical.donateUrl && !/^https:\/\/.+$/.test(practical.donateUrl)) errors.push('Link voor giften moet met https:// beginnen.');
   if (!Array.isArray(practical.hours) || practical.hours.length < 1 || practical.hours.length > 7) errors.push('Er moeten 1 tot 7 openingsdagen zijn.');
   else practical.hours.forEach((item, index) => ['day', 'time', 'activity'].forEach((key) => requiredText(item[key], `Openingsdag ${index + 1}: ${key}`)));
 

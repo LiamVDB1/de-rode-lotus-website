@@ -6,11 +6,31 @@
   "phoneDisplay": "0479 79 89 69",
   "phoneInternational": "+32479798969",
   "email": "derodelotus@outlook.com",
+  "facebookUrl": "https://www.facebook.com/derodelotus/",
+  "instagramUrl": "https://www.instagram.com/vzw_rode_lotus/",
+  "donateUrl": "https://donorbox.org/de-rode-lotus-vzw-heeft-jou-nodig",
   "hoursTitle": "Goed om te weten vóór je komt.",
   "hoursIntro": "De uren verschillen per activiteit. Twijfel je? Bel ons gerust voor je vertrekt.",
   "hours": [
-    { "day": "Dinsdag", "time": "10u–12u · 13u–17u", "activity": "Weggeefwinkel en ontmoeting." },
-    { "day": "Vrijdag", "time": "10u–13u", "activity": "Voedselbedeling met doorverwijsbrief." },
-    { "day": "Zaterdag", "time": "10u–12u · 13u–17u", "activity": "Weggeefwinkel en ontmoeting." }
+    {
+      "day": "Dinsdag",
+      "time": "10u–12u · 13u–17u",
+      "activity": "Weggeefwinkel. Ook: gratis kapster (9u30–11u), massage (10u–12u) en creatief atelier (13u–16u)."
+    },
+    {
+      "day": "Woensdag",
+      "time": "9u–12u · 13u–16u",
+      "activity": "Creatief atelier in de voormiddag, spelotheek in de namiddag."
+    },
+    {
+      "day": "Vrijdag",
+      "time": "10u–13u",
+      "activity": "Voedselbedeling met doorverwijsbrief."
+    },
+    {
+      "day": "Zaterdag",
+      "time": "10u–12u · 13u–17u",
+      "activity": "Weggeefwinkel. Spelotheek van 10u tot 12u."
+    }
   ]
 }
