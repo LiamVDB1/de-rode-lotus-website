@@ -1,4 +1,4 @@
-# Fotoherkomst in de werkversie
+# Fotoherkomst
 
 ## Foto's in `public/uploads` (van de Facebook-pagina)
 
@@ -14,8 +14,8 @@ Deze foto's komen van de [Facebook-pagina van De Rode Lotus](https://www.faceboo
 
 Foto-URL: `https://www.facebook.com/photo/?fbid=<fbid>`.
 
-## Externe preview-beelden
+## Nog zonder foto
 
-De voedselbedeling gebruikt nog een extern beeld van de [publieke Gent Samen Solidair-pagina over De Rode Lotus](https://gentsamensolidair.be/organisatie/de-rode-lotus/) (`rodelotus-7-of-12-scaled…jpg`, via `src/data/preview-photos.json`). Op Facebook stond geen geschikte recente foto van de voedselbedeling. Ook hiervoor zijn hergebruikrechten niet vastgesteld. Vervang via CMS: Wat we doen → Voedselbedeling → Foto.
+De voedselbedeling heeft nog geen foto. Upload er een via **Beheer → Foto’s** en kies ze bij de activiteit.
 
 Wanneer een foto wordt vervangen of toegevoegd, noteer hier: bestandsnaam, maker/bron, wie toestemming gaf, datum en eventuele voorwaarden.

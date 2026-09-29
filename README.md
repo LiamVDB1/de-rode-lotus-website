@@ -1,30 +1,24 @@
 # De Rode Lotus — website
 
-Een kleine, statische Astro-website op basis van de gekozen mockup **De Vertrouwde Buurtorganisatie**.
+De website van [De Rode Lotus](https://derodelotus.com), een buurtorganisatie met weggeefwinkel, voedselbedeling, spelotheek en creatief atelier. Gebouwd met [Astro](https://astro.build) en gehost als Cloudflare Worker, met een eigen, eenvoudig beheer onder `/beheer`.
 
-## Lokaal bekijken
+## Hoe het in elkaar zit
+
+- **Publieke site**: startpagina, een pagina per activiteit, de vrijwilligerspagina met aanmeldformulier, en doneren via overschrijving (IBAN met EPC-QR-code).
+- **Beheer** (`/beheer`): één beheerdersaccount. Teksten, uren, activiteiten, vrijwilligers, veelgestelde vragen, mededeling en doneergegevens worden als ontwerp bewaard en pas zichtbaar na **Publiceren**. Foto’s worden verkleind en in R2 bewaard. Aanmeldingen van nieuwe vrijwilligers komen in de inbox.
+- **Opslag**: Cloudflare D1 voor inhoud, foto-gegevens en aanmeldingen; R2 voor geüploade foto’s. De JSON-bestanden in `src/data/` zijn de standaardinhoud zolang er nog niets gepubliceerd is.
+- **Beveiliging**: wachtwoord als PBKDF2-hash, ondertekende sessiecookie, Content-Security-Policy, Cloudflare Turnstile en rate limiting op het formulier. Zie `src/middleware.ts` en `src/lib/`.
+
+## Lokaal werken
 
 ```bash
 npm ci
+cp .dev.vars.example .dev.vars   # vul een wachtwoordhash en SESSION_SECRET in
+npm run db:migrate:local
 npm run dev
 ```
 
-Open het lokale adres dat Astro toont. De huidige foto’s komen voor deze werkversie nog van Gent Samen Solidair; ze staan niet als gedownloade bestanden in de repo. De foto’s zijn echt, niet AI-gegenereerd. Hergebruikrechten zijn nog niet bevestigd.
-
-## Wat De Rode Lotus straks kan beheren
-
-Via [Pages CMS](https://app.pagescms.org) staan de volgende onderdelen als Nederlandstalige velden klaar:
-
-- de welkomsttekst, overige sectieteksten en zoekmachinebeschrijving;
-- adres, telefoon, e-mail en openingsdagen/uren;
-- activiteiten toevoegen, verwijderen, herschikken en beschrijven;
-- per foto een eigen beeld uploaden en een fotobeschrijving invullen;
-- veelgestelde vragen toevoegen, aanpassen en verwijderen;
-- een tijdelijke mededeling aan- of uitzetten.
-
-De vormgeving, navigatie en knoppenstructuur blijven in code. Daardoor kan een gewone inhoudswijziging de layout niet wijzigen. Een CMS-wijziging wordt opgeslagen als Git-commit. Bij gekoppelde hosting wordt daarna een nieuwe statische versie gebouwd.
-
-De configuratie staat in [`.pages.yml`](.pages.yml). De site leest rechtstreeks de JSON-bestanden in `src/data/`; er is geen database, API-sleutel of eigen loginpagina. Voorlopig krijgt alleen Liam toegang. Later kan De Rode Lotus toegang krijgen via de GitHub-/Pages-CMS-rechten van deze afzonderlijke repository.
+Een wachtwoordhash maak je met `npm run admin:password -- --print`. Lokaal gebruikt het formulier de testsleutel van Turnstile; er wordt geen e-mail verstuurd.
 
 ## Controle en build
 
@@ -33,20 +27,15 @@ npm run check
 npm run build
 ```
 
-`npm run build` maakt een **werkversie**. `npm run build:public` is de publicatiepoort: die stopt zolang de organisatie de inhoud niet bevestigd heeft, foto-rechten niet vaststaan, of een foto niet als lokale upload aanwezig is. De checks staan in `scripts/` en de status in `src/data/publication.json`. Alleen de beheerder van de repo wijzigt die publicatiestatus; ze staat bewust niet in Pages CMS.
+`npm run build:public` is de publicatiepoort: die stopt zolang de organisatie de inhoud en de fotorechten niet bevestigd heeft (`src/data/publication.json`). De site staat voorlopig op `noindex` (in `src/middleware.ts` en `src/layouts/PublicLayout.astro`); haal dat pas weg na die bevestiging.
 
-De GitHub Action controleert bij iedere inhoudswijziging de velden en de Astro-build. De huidige foto’s worden alleen als tijdelijke externe preview gebruikt. Wie een nieuwe activiteit toevoegt, moet een foto uploaden.
+## Deploy
 
-## Publicatie, domein en e-mail
+```bash
+npm run db:migrate:staging
+npm run deploy:staging
+```
 
-Er is nog **geen** publiek domein, Cloudflare-project of live CMS-sessie aangesloten. `wrangler.jsonc` bereidt een statische Cloudflare Workers-deploy voor; de site kan door haar statische output ook elders gehost worden. Koppel hosting pas na de publicatiecheck en na keuze van het organisatie-eigen domein.
+Voor productie gebruik je `npm run db:migrate:production` en een deploy zonder staging-omgeving. Geheimen (`ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `TURNSTILE_SECRET`) zet je met `npm run admin:password` of `wrangler secret put`, nooit in deze repository.
 
-Het domein hoort op naam van De Rode Lotus te staan, met Liam voorlopig als technisch beheerder. Het bestaande `derodelotus@outlook.com` kan gewoon blijven werken; een domeinmailbox is geen voorwaarde om de site online te brengen. DNS-, domein- en mailboxwijzigingen vragen later aparte, bewuste keuzes. Verander bestaande mail-DNS niet tijdens de websitelancering.
-
-## Nog door De Rode Lotus te bevestigen
-
-1. Adres, actuele uren, voedselbedeling/doorverwijzing, activiteitenteksten en contactgegevens.
-2. Toestemming voor gebruik van iedere huidige foto, of eigen foto’s aanleveren/uploaden.
-3. Wie uiteindelijk het domein en de editor-toegang beheert.
-
-Meer detail staat in [`BEHEER.md`](BEHEER.md) en [`PHOTO-SOURCES.md`](PHOTO-SOURCES.md).
+Meer uitleg voor beheerders staat in [`BEHEER.md`](BEHEER.md), de vormgeving in [`DESIGN.md`](DESIGN.md) en de herkomst van de foto’s in [`PHOTO-SOURCES.md`](PHOTO-SOURCES.md).

@@ -1,6 +1,6 @@
 # De Rode Lotus — gekozen vormgeving
 
-Deze Astro-site zet de door Liam gekozen mockup **De Vertrouwde Buurtorganisatie** om naar een bewerkbare website. Dit is een behoudende port, geen nieuwe ontwerprichting.
+Deze Astro-site volgt het gekozen ontwerp **De Vertrouwde Buurtorganisatie**: warm, documentair en eenvoudig te lezen.
 
 ## Visueel systeem
 
@@ -12,10 +12,10 @@ Deze Astro-site zet de door Liam gekozen mockup **De Vertrouwde Buurtorganisatie
 
 ## Inhoud en beheer
 
-De pagina blijft kort: welkom, praktische gegevens, activiteiten, uren, ontmoeting, meehelpen en vragen. Editors wijzigen teksten, uren, foto’s, activiteiten, FAQ en mededeling via de gestructureerde velden in `.pages.yml`; ze wijzigen niet de layout of navigatiecode.
+De pagina blijft kort: welkom, praktische gegevens, activiteiten, uren, ontmoeting, meehelpen en vragen. Editors wijzigen teksten, uren, foto’s, activiteiten, FAQ en mededeling via de velden in `/beheer`; ze wijzigen niet de layout of navigatiecode.
 
-De huidige externe foto’s zijn alleen previewmateriaal. Elke publieke raster die later via `public/uploads` wordt gebruikt, moet in `PHOTO-SOURCES.md` met maker, bron en toestemming worden geregistreerd. De publicatiepoort in `scripts/check-publication.mjs` vereist bevestigde inhoud, rechten en lokale uploads.
+Elke foto op de site moet in `PHOTO-SOURCES.md` met maker, bron en toestemming worden geregistreerd. De publicatiepoort in `scripts/check-publication.mjs` vereist bevestigde inhoud en rechten.
 
-## Controlegrens
+## Logo
 
-Astro-check, inhoud/CMS-schema en een statische build zijn uitgevoerd. Een visuele desktop- en mobiele browservergelijking met de gekozen mockup is nog niet uitgevoerd; de lokale browsertoegang was in deze sessie niet beschikbaar voor geautomatiseerde inspectie.
+Het lotuslogo is blaadje per blaadje nagetekend naar het originele logo en wordt gegenereerd door `scripts/build-logo.mjs` (`src/components/Logo.astro` en `public/favicon.svg`). Pas het logo daar aan.

@@ -1,26 +1,32 @@
-# Beheer — voor Liam en later De Rode Lotus
+# Beheer — de website zelf aanpassen
+
+## Aanmelden
+
+Ga naar **derodelotus.com/beheer** en meld je aan met het beheerderswachtwoord. Klik op **Uitloggen** wanneer je klaar bent op een gedeelde computer.
 
 ## Inhoud aanpassen
 
-1. Ga naar [app.pagescms.org](https://app.pagescms.org) en meld je aan met het GitHub-account dat toegang heeft tot deze repository.
-2. Open de private repository [**LiamVDB1/de-rode-lotus-website**](https://github.com/LiamVDB1/de-rode-lotus-website). Pages CMS leest automatisch `.pages.yml` op de hoofdbranch.
-3. Kies **Startpagina**, **Adres, contact en uren**, **Wat we doen**, **Veelgestelde vragen** of **Actuele mededeling**.
-4. Bewaar de wijziging. Pages CMS schrijft een commit naar GitHub. Controleer daarna of de automatische websitecontrole groen is en, zodra hosting gekoppeld is, of de gepubliceerde site klopt.
+1. Kies in het menu wat je wil aanpassen: startpagina, praktische info en uren, activiteiten, vrijwilligers, veelgestelde vragen, mededeling of doneren.
+2. Pas de velden aan. Wijzigingen worden als **ontwerp** bewaard; bezoekers zien ze nog niet.
+3. Bekijk het resultaat met het voorbeeld.
+4. Klik op **Publiceren**. Vanaf dan staat de wijziging op de website.
 
-De private GitHub-repository bestaat. Het CMS is pas daadwerkelijk bruikbaar nadat de bevoegde gebruiker de GitHub-aanmelding van Pages CMS bewust heeft goedgekeurd en de Pages CMS GitHub App voor deze repository is geïnstalleerd. De aanmelding vraagt een brede [`repo`-scope](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps) voor het gebruikte GitHub-account; neem die toegang bewust in overweging.
+## Foto’s
 
-## Foto’s vervangen
+Onder **Foto’s** sleep je foto’s in de bibliotheek. Ze worden automatisch verkleind. Geef elke foto een korte beschrijving (“Twee vrijwilligers sorteren kleding”): dat helpt mensen met een schermlezer. Daarna kies je de foto bij een activiteit of vrijwilliger.
 
-Gebruik bij de betreffende sectie het veld **Foto** om een echte foto te uploaden. Vul ook **Beschrijf de foto** in, bijvoorbeeld “Twee vrijwilligers sorteren kleding in de weggeefwinkel”. Pages CMS slaat de upload op in `public/uploads` en schrijft `/uploads/bestandsnaam.jpg` in het inhoudsbestand.
+Vraag vooraf na of de foto op de website mag, en of herkenbare personen akkoord zijn. Noteer de herkomst in [`PHOTO-SOURCES.md`](PHOTO-SOURCES.md).
 
-Vraag vooraf na of De Rode Lotus de foto op een publieke website mag tonen, of herkenbare personen met dit gebruik akkoord zijn, en wie de maker is. De huidige previewbeelden zijn extern gepubliceerde foto’s; publieke beschikbaarheid is geen hergebruiklicentie. Verwijder oude uploads pas als zeker is dat ze nergens meer gebruikt worden.
+## Aanmeldingen van vrijwilligers
+
+Wie het formulier op de vrijwilligerspagina invult, verschijnt onder **Inbox**. Neem contact op en zet de aanmelding daarna op **Afgehandeld**. Met **Op de vrijwilligerspagina zetten** maak je meteen een ontwerp aan voor de vrijwilligerspagina. Verwijder een aanmelding als iemand geen vrijwilliger wordt of erom vraagt.
 
 ## Actuele mededeling
 
-Zet **Mededeling tonen** aan, vul titel en bericht in, en eventueel een einddatum `JJJJ-MM-DD`. De site verbergt de mededeling na die datum in de browser. Zet haar ook in Pages CMS uit of verwijder de tekst wanneer het bericht niet meer geldt. Een einddatum alleen maakt geen nieuwe Git-commit of herbouw.
+Zet de mededeling aan, vul titel en bericht in en eventueel een einddatum. Na die datum verdwijnt ze vanzelf. Zet ze uit wanneer het bericht niet meer geldt.
 
 ## Publicatie en eigenaarschap
 
-De organisatie heeft nu alleen het ontwerp positief beoordeeld. Daarom staan `approvedByOrganisation` en `photoRightsConfirmed` bewust op `false`. Een beheerder zet die pas na expliciete bevestiging op `true`, vult de datum in en controleert de foto’s. `npm run build:public` moet dan slagen. Deze stap is geen cosmetische schakelaar: de bevestiging zelf moet echt gebeurd zijn.
+`src/data/publication.json` houdt bij of De Rode Lotus de inhoud en de fotorechten bevestigd heeft. Zet die waarden pas op `true` na een echte bevestiging. Pas daarna mag de site zichtbaar worden voor zoekmachines.
 
-Voorlopig krijgt alleen Liam editor-toegang. Geef later iemand van De Rode Lotus toegang door de eigendoms- en GitHub-/Pages-CMS-instellingen bewust over te dragen. Zet geen wachtwoorden of tokens in deze repository.
+Zet nooit wachtwoorden of sleutels in deze repository. Het wachtwoord wijzigen gaat met `npm run admin:password`.
