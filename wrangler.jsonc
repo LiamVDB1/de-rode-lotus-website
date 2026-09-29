@@ -1,6 +1,11 @@
 {
   "name": "de-rode-lotus",
   "compatibility_date": "2026-09-25",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "derodelotus.com", "custom_domain": true },
+    { "pattern": "www.derodelotus.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./dist"
   }
