@@ -2,7 +2,7 @@
 
 ## Foto's in `public/uploads` (van de Facebook-pagina)
 
-Deze foto's komen van de [Facebook-pagina van De Rode Lotus](https://www.facebook.com/derodelotus/) en zijn geselecteerd op 29 september 2026. Ze zijn verkleind en omgezet naar WebP. **Toestemming voor hergebruik op de website en van herkenbare personen moet nog bevestigd worden door De Rode Lotus (Christine).** Tot dan blijft de site `noindex`.
+Deze foto's komen van de [Facebook-pagina van De Rode Lotus](https://www.facebook.com/derodelotus/) en zijn geselecteerd op 29 september 2026. Ze zijn verkleind en omgezet naar WebP. Christine (De Rode Lotus) gaf op 29 september 2026 toestemming om alle foto's van de Facebook-pagina op de website te gebruiken.
 
 | Bestand | Gebruik | Facebook-foto (fbid) | Gepost |
 | --- | --- | --- | --- |
