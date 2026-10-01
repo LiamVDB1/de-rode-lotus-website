@@ -1,7 +1,7 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import PreviewLink from '../../../components/admin/PreviewLink.astro';
-import { documentStatuses, loadDraft } from '../../../lib/content';
+import { documentStatuses, loadDraft, loadPublished } from '../../../lib/content';
 import { editors } from '../../../lib/editor-spec';
 import { DOCUMENT_KEYS, type DocumentKey } from '../../../lib/schema';
 
@@ -9,10 +9,10 @@ const key = Astro.params.key as DocumentKey;
 if (!DOCUMENT_KEYS.includes(key)) return Astro.rewrite('/404');
 
 const editor = editors[key];
-const [value, statuses] = await Promise.all([loadDraft(key), documentStatuses()]);
+const [value, published, statuses] = await Promise.all([loadDraft(key), loadPublished(key), documentStatuses()]);
 const status = statuses.find((item) => item.key === key);
 // In een <script type="application/json"> mag geen "</script>" staan; < escapen volstaat.
-const boot = JSON.stringify({ editor, value, hasDraft: Boolean(status?.changed) }).replace(/</g, '\\u003c');
+const boot = JSON.stringify({ editor, value, published, hasDraft: Boolean(status?.changed) }).replace(/</g, '\\u003c');
 ---
 <AdminLayout title={editor.title} active={`/beheer/inhoud/${key}`}>
   <header class="page-head">

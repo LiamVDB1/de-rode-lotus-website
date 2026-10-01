@@ -135,6 +135,9 @@ kbd { padding: .05rem .35rem; border: 1px solid rgba(255, 255, 255, .45); border
 .field.wide, .group-fields > .list-field, .item-body > .blocks-field { grid-column: 1 / -1; }
 .field label, .field .label { font-weight: 700; font-size: .95rem; }
 .label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.field-changed { display: inline-block; margin-left: .5rem; padding: .05rem .45rem; border-radius: 999px; color: var(--blue-dark); background: var(--gold); font-size: .72rem; font-weight: 700; letter-spacing: 0; text-transform: none; vertical-align: .1em; }
+.item-label .field-changed { justify-self: start; margin: .15rem 0 0; }
+.gallery-tile[data-changed="true"] { outline: 3px solid var(--gold); outline-offset: 1px; }
 .counter { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
 .counter[data-full="true"] { color: var(--red-dark); font-weight: 700; }
 input[type="text"], input[type="date"], input[type="search"], input[type="password"], textarea, select {
@@ -232,15 +235,18 @@ input[readonly] { color: var(--muted); background: #f7f6f2; }
 
 dialog { padding: 0; border: 0; border-radius: 16px; color: inherit; box-shadow: 0 30px 80px rgba(15, 25, 40, .35); }
 dialog::backdrop { background: rgba(15, 25, 40, .55); backdrop-filter: blur(2px); }
-.picker { width: min(920px, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); }
+/* Achtergrond niet laten meescrollen zolang een venster open is (vooral op gsm). */
+html:has(dialog[open]) { overflow: hidden; }
+.picker { width: min(920px, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); max-height: calc(100dvh - 2rem); overscroll-behavior: contain; }
 .picker[open] { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; }
 .picker-head { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.2rem; border-bottom: 1px solid var(--line); }
 .picker-head h2 { font-size: 1.2rem; }
 .picker > .dropzone { margin: 1rem 1.2rem 0; padding: 1rem; }
-.picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); align-content: start; gap: .7rem; overflow-y: auto; padding: 1rem 1.2rem; }
-.picker-item { position: relative; aspect-ratio: 1; padding: 0; overflow: hidden; border: 3px solid transparent; border-radius: 10px; background: var(--paper); cursor: pointer; }
-.picker-item img { width: 100%; height: 100%; object-fit: cover; }
-.picker-item:hover { border-color: var(--line-strong); }
+.picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); grid-auto-rows: max-content; align-content: start; gap: .7rem; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1rem 1.2rem; }
+.picker-item { position: relative; padding: 0; overflow: hidden; border: 3px solid transparent; border-radius: 10px; background: var(--paper); cursor: pointer; }
+/* De foto bepaalt de vierkante tegel; zo rekt de tegel niet uit en schuiven rijen niet over elkaar (gsm). */
+.picker-item img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; }
+@media (hover: hover) { .picker-item:hover { border-color: var(--line-strong); } }
 .picker-item[aria-pressed="true"] { border-color: var(--red); }
 .picker-check { position: absolute; top: .4rem; right: .4rem; width: 1.6rem; height: 1.6rem; display: grid; place-items: center; border-radius: 50%; color: var(--white); background: var(--red); font-weight: 700; opacity: 0; transform: scale(.6); transition: opacity .15s, transform .15s var(--ease-out); }
 .picker-item[aria-pressed="true"] .picker-check { opacity: 1; transform: none; }
@@ -317,7 +323,7 @@ dialog::backdrop { background: rgba(15, 25, 40, .55); backdrop-filter: blur(2px)
 /* Tablet en gsm */
 @media (max-width: 900px) {
   .admin { grid-template-columns: minmax(0, 1fr); }
-  .sidebar { position: sticky; z-index: 40; height: auto; max-height: 100vh; padding: .6rem 1rem; }
+  .sidebar { position: sticky; z-index: 40; height: auto; max-height: 100vh; max-height: 100dvh; padding: .6rem 1rem; }
   .sidebar-brand svg { width: 2.3rem; }
   .sidebar-toggle { display: inline-flex; }
   .sidebar[data-open="false"] .sidebar-nav, .sidebar[data-open="false"] .sidebar-foot { display: none; }
@@ -345,6 +351,15 @@ dialog::backdrop { background: rgba(15, 25, 40, .55); backdrop-filter: blur(2px)
   kbd { display: none; }
   .submission-head { flex-direction: column; }
   .submission-actions .btn-link { margin-left: 0; }
+  /* Fotokiezer schermvullend: knoppen onderaan blijven zichtbaar, alleen de foto's scrollen. */
+  .picker { width: 100%; max-width: 100%; height: 100vh; height: 100dvh; max-height: 100vh; max-height: 100dvh; margin: 0; border-radius: 0; }
+  .picker-head { padding: .7rem 1rem; }
+  .picker > .dropzone { margin: .7rem 1rem 0; padding: .7rem; }
+  .picker .dropzone-icon, .picker .dropzone-hint { display: none; }
+  .picker .dropzone:not([data-busy="true"]) .dropzone-progress, .picker .dropzone-status:empty { display: none; }
+  .picker-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem; padding: .7rem 1rem; }
+  .picker-item { border-width: 2px; }
+  .picker-foot { padding: .6rem 1rem calc(.6rem + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }

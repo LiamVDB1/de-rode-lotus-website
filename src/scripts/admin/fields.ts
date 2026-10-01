@@ -10,7 +10,12 @@ export interface Context {
   rebuild(focusKey?: string): void;
   isOpen(key: string): boolean;
   setOpen(key: string, open: boolean): void;
+  /** Na het vervangen van één veld de "gewijzigd"-labels opnieuw zetten. */
+  refreshMarks(): void;
 }
+
+/** De lijst zoals ze nu is. Niet de kopie van bij het tekenen: die mist wat je sindsdien typte. */
+const latest = <T>(ctx: Context, path: Path) => ((ctx.get(path) as T[] | undefined) ?? []);
 
 const str = (value: unknown) => (typeof value === 'string' ? value : '');
 
@@ -104,7 +109,10 @@ function photoField(field: Extract<Field, { kind: 'photo' }>, path: Path, ctx: C
   const altPath = [...path.slice(0, -1), field.altName];
   const id = uid();
   const src = str(ctx.get(path));
-  const rerender = (element: HTMLElement) => element.replaceWith(photoField(field, path, ctx));
+  const rerender = (element: HTMLElement) => {
+    element.replaceWith(photoField(field, path, ctx));
+    ctx.refreshMarks();
+  };
 
   const choose = async () => {
     const [item] = await openPicker({ multiple: false });
@@ -157,7 +165,7 @@ function photoField(field: Extract<Field, { kind: 'photo' }>, path: Path, ctx: C
 
 function moveButtons(list: unknown[], index: number, path: Path, ctx: Context, noun: string): HTMLElement {
   const move = (to: number) => {
-    const next = [...list];
+    const next = [...latest(ctx, path)];
     const [item] = next.splice(index, 1);
     next.splice(to, 0, item);
     const moved = [...path, to];
@@ -167,7 +175,7 @@ function moveButtons(list: unknown[], index: number, path: Path, ctx: Context, n
   };
   const remove = () => {
     if (!window.confirm(`${noun} verwijderen? Dit kan je ongedaan maken zolang je niet opslaat, door de pagina te herladen.`)) return;
-    ctx.set(path, list.filter((_, position) => position !== index));
+    ctx.set(path, latest(ctx, path).filter((_, position) => position !== index));
     ctx.rebuild();
   };
   const key = pathKey([...path, index]);
@@ -219,8 +227,9 @@ function listField(field: Extract<Field, { kind: 'list' }>, path: Path, ctx: Con
   });
 
   const add = () => {
-    const nextPath = [...path, list.length];
-    ctx.set(path, [...list, structuredClone(field.newItem)]);
+    const current = latest(ctx, path);
+    const nextPath = [...path, current.length];
+    ctx.set(path, [...current, structuredClone(field.newItem)]);
     ctx.setOpen(pathKey(nextPath), true);
     ctx.rebuild(`first:${pathKey(nextPath)}`);
   };
@@ -241,11 +250,12 @@ function galleryField(path: Path, ctx: Context): HTMLElement {
   const photos = (ctx.get(path) as { src: string; alt: string }[] | undefined) ?? [];
   const add = async () => {
     const picked = await openPicker({ multiple: true });
-    const present = new Set(photos.map((photo) => photo.src));
+    const current = latest<{ src: string; alt: string }>(ctx, path);
+    const present = new Set(current.map((photo) => photo.src));
     const fresh = picked.filter((item) => !present.has(item.path));
     if (!fresh.length) return;
-    const room = Math.max(0, MAX_GALLERY_PHOTOS - photos.length);
-    ctx.set(path, [...photos, ...fresh.slice(0, room).map((item) => ({ src: item.path, alt: item.alt }))]);
+    const room = Math.max(0, MAX_GALLERY_PHOTOS - current.length);
+    ctx.set(path, [...current, ...fresh.slice(0, room).map((item) => ({ src: item.path, alt: item.alt }))]);
     ctx.rebuild();
   };
   const tiles = photos.map((photo, index) => {
@@ -291,8 +301,9 @@ function blocksField(field: Extract<Field, { kind: 'blocks' }>, path: Path, ctx:
     );
   });
   const add = (type: keyof typeof BLOCK_TYPES) => {
-    ctx.set(path, [...blocks, BLOCK_TYPES[type].create()]);
-    ctx.rebuild(`first:${pathKey([...path, blocks.length])}`);
+    const current = latest(ctx, path);
+    ctx.set(path, [...current, BLOCK_TYPES[type].create()]);
+    ctx.rebuild(`first:${pathKey([...path, current.length])}`);
   };
   return h(
     'section',

@@ -61,6 +61,18 @@ export async function loadDraft<K extends DocumentKey>(key: K): Promise<Document
   return parse(key, row?.draft ?? null) ?? parse(key, row?.published ?? null) ?? defaults[key];
 }
 
+/** Wat nu op de website staat (of de startinhoud als er nog niets gepubliceerd is). */
+export async function loadPublished<K extends DocumentKey>(key: K): Promise<Documents[K]> {
+  const row = await env.DB.prepare('SELECT published FROM documents WHERE key = ?').bind(key).first<Pick<Row, 'published'>>();
+  return parse(key, row?.published ?? null) ?? defaults[key];
+}
+
+/** Of de werkversie verschilt van wat online staat; zelfde regel als documentStatuses(). */
+export async function hasUnpublishedChanges(key: DocumentKey): Promise<boolean> {
+  const row = await env.DB.prepare('SELECT draft, published FROM documents WHERE key = ?').bind(key).first<Pick<Row, 'draft' | 'published'>>();
+  return Boolean(row && row.draft !== row.published);
+}
+
 export async function saveDraft<K extends DocumentKey>(key: K, value: Documents[K]): Promise<void> {
   const now = new Date().toISOString();
   await env.DB.prepare(

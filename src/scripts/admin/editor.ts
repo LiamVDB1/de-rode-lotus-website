@@ -1,11 +1,14 @@
 import type { DocumentEditor } from '../../lib/editor-spec';
 import { api, toast, type Issue } from './api';
+import { markChanges } from './changes';
 import { getIn, h, pathKey, setIn, type Path } from './dom';
 import { renderField, type Context } from './fields';
 
 interface Boot {
   editor: DocumentEditor;
   value: unknown;
+  /** Wat nu online staat, om per veld "gewijzigd" te tonen. */
+  published: unknown;
   hasDraft: boolean;
 }
 
@@ -34,6 +37,7 @@ function start(boot: Boot): void {
   if (!form || !status || !saveButton || !errorBox) return;
 
   let value = wrap(editor, boot.value);
+  const published = wrap(editor, boot.published);
   let saved = JSON.stringify(value);
   let hasDraft = boot.hasDraft;
   let saving = false;
@@ -48,6 +52,7 @@ function start(boot: Boot): void {
     document.body.dataset.dirty = String(dirty);
     saveButton.disabled = !dirty || saving;
     if (revertButton) revertButton.hidden = !hasDraft || dirty;
+    markChanges(form, value, published);
     if (!saving) setStatus(dirty ? 'Niet opgeslagen wijzigingen' : hasDraft ? 'Opgeslagen als ontwerp, nog niet gepubliceerd' : 'Alles is gepubliceerd', dirty ? 'dirty' : hasDraft ? 'ok' : 'idle');
   };
 
@@ -102,11 +107,13 @@ function start(boot: Boot): void {
     rebuild: (focusKey?: string) => rebuild(focusKey),
     isOpen: (key: string) => open.has(key),
     setOpen: (key: string, isOpen: boolean) => (isOpen ? open.add(key) : open.delete(key)),
+    refreshMarks: () => markChanges(form, value, published),
   };
 
   function rebuild(focusKey?: string): void {
     const scroll = window.scrollY;
     form!.replaceChildren(...editor.fields.map((field) => renderField(field, [], ctx)));
+    markChanges(form!, value, published);
     window.scrollTo({ top: scroll });
     if (!focusKey) return;
     const [kind, key] = focusKey.split(/:(.*)/s);
@@ -126,15 +133,15 @@ function start(boot: Boot): void {
     saveButton.disabled = true;
     setStatus('Opslaan…', 'busy');
     const snapshot = value;
-    const result = await api('PUT', `/beheer/api/inhoud/${editor.key}`, unwrap(editor, snapshot), { quiet: true });
+    const result = await api<{ changed: boolean }>('PUT', `/beheer/api/inhoud/${editor.key}`, unwrap(editor, snapshot), { quiet: true });
     saving = false;
     if (result.ok) {
       saved = JSON.stringify(snapshot);
-      hasDraft = true;
+      hasDraft = result.changed;
       clearErrors();
       refreshDirty();
-      toast('Opgeslagen. Bekijk het voorbeeld of publiceer wanneer je klaar bent.', 'success');
-      document.dispatchEvent(new CustomEvent('lotus:saved', { detail: { key: editor.key } }));
+      toast(hasDraft ? 'Opgeslagen. Bekijk het voorbeeld of publiceer wanneer je klaar bent.' : 'Opgeslagen. Dit is weer gelijk aan wat online staat.', 'success');
+      document.dispatchEvent(new CustomEvent('lotus:saved', { detail: { key: editor.key, changed: hasDraft } }));
       return;
     }
     refreshDirty();

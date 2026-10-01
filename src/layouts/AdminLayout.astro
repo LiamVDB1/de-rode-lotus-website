@@ -46,7 +46,7 @@ const navItem = (href: string) => (active === href ? 'page' : undefined);
         <a href="/beheer" aria-current={navItem('/beheer')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d={icons.overzicht} /></svg>Overzicht</a>
         <p class="nav-label">Inhoud</p>
         {contentOrder.filter((key) => DOCUMENT_KEYS.includes(key)).map((key) => (
-          <a href={`/beheer/inhoud/${key}`} aria-current={navItem(`/beheer/inhoud/${key}`)}>
+          <a href={`/beheer/inhoud/${key}`} aria-current={navItem(`/beheer/inhoud/${key}`)} data-doc={key} data-doc-title={editors[key].title}>
             <span class="nav-dot" aria-hidden="true"></span>{editors[key].title}
             {changedKeys.has(key) && <span class="nav-changed" title="Gewijzigd, nog niet gepubliceerd">gewijzigd</span>}
           </a>
@@ -57,9 +57,11 @@ const navItem = (href: string) => (active === href ? 'page' : undefined);
       </nav>
       <div class="sidebar-foot">
         <div class="publish-card" data-changed={changed.length}>
-          {changed.length > 0
-            ? <p><strong>{changed.length} {changed.length === 1 ? 'onderdeel' : 'onderdelen'}</strong> gewijzigd, nog niet op de website.</p>
-            : <p>Alles staat online. <span aria-hidden="true">✓</span></p>}
+          <p data-publish-text aria-live="polite">
+            {changed.length > 0
+              ? <Fragment><strong>{changed.length} {changed.length === 1 ? 'onderdeel' : 'onderdelen'}</strong> gewijzigd, nog niet op de website.</Fragment>
+              : <Fragment>Alles staat online. <span aria-hidden="true">✓</span></Fragment>}
+          </p>
           <button class="btn btn-primary btn-block" type="button" data-publish disabled={changed.length === 0}>Publiceren</button>
           <PreviewLink class="btn btn-quiet btn-block" />
         </div>
@@ -78,7 +80,7 @@ const navItem = (href: string) => (active === href ? 'page' : undefined);
       <form method="dialog">
         <h2 id="publish-title">Wijzigingen publiceren?</h2>
         <p>Deze onderdelen komen meteen op derodelotus.com:</p>
-        <ul>{changed.map((status) => <li>{editors[status.key].title}</li>)}</ul>
+        <ul data-publish-list>{changed.map((status) => <li>{editors[status.key].title}</li>)}</ul>
         <div class="confirm-actions">
           <button class="btn btn-ghost" value="cancel">Nog niet</button>
           <button class="btn btn-primary" value="ok">Publiceren</button>
@@ -89,6 +91,7 @@ const navItem = (href: string) => (active === href ? 'page' : undefined);
 
     <script>
       import { api, toast } from '../scripts/admin/api';
+      import { h } from '../scripts/admin/dom';
 
       const sidebar = document.querySelector<HTMLElement>('.sidebar');
       const toggle = document.querySelector<HTMLButtonElement>('.sidebar-toggle');
@@ -114,6 +117,25 @@ const navItem = (href: string) => (active === href ? 'page' : undefined);
         if (!result.ok) return;
         sessionStorage.setItem('lotus-toast', 'Gepubliceerd. De wijzigingen staan nu op de website.');
         location.reload();
+      });
+
+      /** Na opslaan meteen het menu, de publiceerknop en de lijst in de bevestiging bijwerken. */
+      document.addEventListener('lotus:saved', (event) => {
+        const { key, changed } = (event as CustomEvent<{ key: string; changed: boolean }>).detail;
+        const link = document.querySelector<HTMLAnchorElement>(`[data-doc="${CSS.escape(key)}"]`);
+        const badge = link?.querySelector('.nav-changed');
+        if (changed && link && !badge) link.append(h('span', { class: 'nav-changed', title: 'Gewijzigd, nog niet gepubliceerd' }, 'gewijzigd'));
+        if (!changed) badge?.remove();
+
+        const titles = [...document.querySelectorAll<HTMLAnchorElement>('[data-doc]')].filter((item) => item.querySelector('.nav-changed')).map((item) => item.dataset.docTitle ?? '');
+        const count = titles.length;
+        const card = document.querySelector<HTMLElement>('.publish-card');
+        if (card) card.dataset.changed = String(count);
+        document.querySelector('[data-publish-text]')?.replaceChildren(
+          ...(count > 0 ? [h('strong', {}, `${count} ${count === 1 ? 'onderdeel' : 'onderdelen'}`), ' gewijzigd, nog niet op de website.'] : ['Alles staat online. ', h('span', { 'aria-hidden': 'true' }, '✓')]),
+        );
+        document.querySelectorAll<HTMLButtonElement>('[data-publish]').forEach((button) => (button.disabled = count === 0));
+        document.querySelector('[data-publish-list]')?.replaceChildren(...titles.map((title) => h('li', {}, title)));
       });
 
       const pending = sessionStorage.getItem('lotus-toast');
