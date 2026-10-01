@@ -1,12 +1,11 @@
 import { defineMiddleware } from 'astro:middleware';
 import { PREVIEW_COOKIE, SESSION_COOKIE, verifySessionToken } from './lib/auth';
-import { isProductionHost, sameOrigin } from './lib/http';
+import { isIndexableHost, isProductionHost, sameOrigin } from './lib/http';
 
+const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow' };
 const PUBLIC_ADMIN_PATHS = new Set(['/beheer/login', '/beheer/login/']);
 
 const baseHeaders: Record<string, string> = {
-  // Nog niet indexeren tot De Rode Lotus de site goedkeurt (zie publication.json).
-  'X-Robots-Tag': 'noindex, nofollow',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
@@ -58,7 +57,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const needsLogin = (previewHost && !admin) || (isAdminPath && !admin && !PUBLIC_ADMIN_PATHS.has(url.pathname));
   if (needsLogin) {
     if (url.pathname.startsWith('/beheer/api/')) {
-      return withHeaders(new Response(JSON.stringify({ ok: false, message: 'Log opnieuw in.' }), { status: 401, headers: { 'Content-Type': 'application/json' } }), baseHeaders);
+      return withHeaders(new Response(JSON.stringify({ ok: false, message: 'Log opnieuw in.' }), { status: 401, headers: { 'Content-Type': 'application/json' } }), { ...baseHeaders, ...NOINDEX });
     }
     // Inloggen gebeurt altijd op het hoofddomein; het cookie geldt ook voor preview.
     const target = new URL('/beheer/login', url.origin.replace('//preview.', '//'));
@@ -68,13 +67,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(context.request.method);
   if (url.pathname.startsWith('/beheer/api/') && mutating && !sameOrigin(context.request)) {
-    return withHeaders(new Response(JSON.stringify({ ok: false, message: 'Ongeldig verzoek.' }), { status: 403, headers: { 'Content-Type': 'application/json' } }), baseHeaders);
+    return withHeaders(new Response(JSON.stringify({ ok: false, message: 'Ongeldig verzoek.' }), { status: 403, headers: { 'Content-Type': 'application/json' } }), { ...baseHeaders, ...NOINDEX });
   }
 
   const response = await next();
   const privateResponse = isAdminPath || context.locals.draft;
   return withHeaders(response, {
     ...baseHeaders,
+    ...(privateResponse || !isIndexableHost(url) ? NOINDEX : {}),
     'Content-Security-Policy': isAdminPath ? adminCsp : publicCsp,
     ...(privateResponse ? { 'Cache-Control': 'no-store', 'X-Frame-Options': 'DENY' } : {}),
   });

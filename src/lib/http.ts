@@ -35,6 +35,11 @@ export function isProductionHost(url: URL): boolean {
   return typeof env.COOKIE_DOMAIN === 'string' && env.COOKIE_DOMAIN !== '' && url.hostname.endsWith(env.COOKIE_DOMAIN);
 }
 
+/** Alleen het hoofddomein mag in zoekmachines; www, preview en staging niet. */
+export function isIndexableHost(url: URL): boolean {
+  return typeof env.SITE_ORIGIN === 'string' && env.COOKIE_DOMAIN !== '' && url.hostname === new URL(env.SITE_ORIGIN).hostname;
+}
+
 /** Hosts waarnaar we na het inloggen mogen terugsturen: dezelfde site of haar preview. */
 function trustedHosts(url: URL): Set<string> {
   const domain = typeof env.COOKIE_DOMAIN === 'string' ? env.COOKIE_DOMAIN : '';

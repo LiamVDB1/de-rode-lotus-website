@@ -12,7 +12,7 @@ Website for De Rode Lotus, a neighbourhood organisation. Astro on Cloudflare Wor
 
 - User-facing text is Dutch (Belgian). Keep the tone warm and plain; no marketing language.
 - Never commit secrets. `.dev.vars` is local only; production secrets go through `wrangler secret put`.
-- The site stays `noindex` and `npm run build:public` stays blocked until the organisation confirms content and photo rights in `src/data/publication.json`. Do not flip those values yourself.
+- The organisation approved content and photo rights on 2026-10-01 (`src/data/publication.json`). Only the apex domain is indexable; keep www, preview, staging, admin and draft views `noindex`.
 - Only use photos whose origin is recorded in `PHOTO-SOURCES.md`.
 - Staging and production deploys, DNS, Email Routing and Cloudflare account changes need the owner's explicit approval.
 - Never send test mail to the organisation's real inbox.

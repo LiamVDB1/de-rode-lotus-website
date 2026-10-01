@@ -27,7 +27,7 @@ npm run check
 npm run build
 ```
 
-`npm run build:public` is de publicatiepoort: die stopt zolang de organisatie de inhoud en de fotorechten niet bevestigd heeft (`src/data/publication.json`). De site staat voorlopig op `noindex` (in `src/middleware.ts` en `src/layouts/PublicLayout.astro`); haal dat pas weg na die bevestiging.
+`npm run build:public` is de publicatiepoort: die stopt zolang de organisatie de inhoud en de fotorechten niet bevestigd heeft (`src/data/publication.json`). Die bevestiging is er sinds 1 oktober 2026. Alleen `derodelotus.com` zelf is indexeerbaar; www, preview, staging, beheer en voorbeeldweergaven blijven `noindex` (`isIndexableHost` in `src/lib/http.ts`).
 
 ## Deploy
 
@@ -36,6 +36,6 @@ npm run db:migrate:staging
 npm run deploy:staging
 ```
 
-Voor productie gebruik je `npm run db:migrate:production` en een deploy zonder staging-omgeving. Geheimen (`ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `TURNSTILE_SECRET`) zet je met `npm run admin:password` of `wrangler secret put`, nooit in deze repository.
+Productie deployt automatisch: elke push naar `main` draait `.github/workflows/deploy.yml` (check, `build:public`, `db:migrate:production`, `wrangler deploy`). Daarvoor staan de GitHub-secrets `CLOUDFLARE_API_TOKEN` en `CLOUDFLARE_ACCOUNT_ID` in de repository; zonder die secrets slaat de workflow de deploy over. Met de hand kan het ook: `npm run db:migrate:production && npm run build:public && npx wrangler deploy`. Geheimen (`ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `TURNSTILE_SECRET`) zet je met `npm run admin:password` of `wrangler secret put`, nooit in deze repository.
 
 Meer uitleg voor beheerders staat in [`BEHEER.md`](BEHEER.md), de vormgeving in [`DESIGN.md`](DESIGN.md) en de herkomst van de foto’s in [`PHOTO-SOURCES.md`](PHOTO-SOURCES.md).

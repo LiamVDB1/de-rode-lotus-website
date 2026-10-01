@@ -34,7 +34,7 @@ jobs:
       - if: steps.ready.outputs.ok == 'true'
         run: npm run check
       - if: steps.ready.outputs.ok == 'true'
-        run: npm run build
+        run: npm run build:public
       - if: steps.ready.outputs.ok == 'true'
         run: npm run db:migrate:production
       - if: steps.ready.outputs.ok == 'true'

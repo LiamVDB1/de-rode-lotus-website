@@ -17,7 +17,7 @@
   "vars": {
     "SITE_ORIGIN": "https://derodelotus.com",
     "COOKIE_DOMAIN": "derodelotus.com",
-    "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFLDepFhQ_1ujYi0",
     "NOTIFY_TO": "derodelotus@outlook.com",
     "NOTIFY_FROM": "website@derodelotus.com"
   },

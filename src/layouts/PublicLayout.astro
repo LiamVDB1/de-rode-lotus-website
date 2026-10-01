@@ -7,6 +7,7 @@ import Logo from '../components/Logo.astro';
 import DonateDialog from '../components/DonateDialog.astro';
 import type { Documents } from '../lib/schema';
 import { phoneHref } from '../lib/site';
+import { isIndexableHost } from '../lib/http';
 
 interface Props {
   docs: Documents;
@@ -21,6 +22,7 @@ const emailHref = `mailto:${encodeURIComponent(practical.email)}`;
 const phoneLink = phoneHref(practical.phoneInternational);
 const donateDialog = donate.enabled && donate.iban !== '';
 const draft = Astro.locals.draft;
+const indexable = !draft && isIndexableHost(Astro.url);
 ---
 <!doctype html>
 <html lang="nl">
@@ -29,7 +31,7 @@ const draft = Astro.locals.draft;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#173252" />
     <meta name="description" content={description} />
-    <meta name="robots" content="noindex, nofollow" />
+    {indexable ? <link rel="canonical" href={new URL(Astro.url.pathname, Astro.url.origin).toString()} /> : <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
   </head>
