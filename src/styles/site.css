@@ -17,6 +17,9 @@
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
+/* Zachte overgang bij van taal wisselen (zie PublicLayout); andere links slaan ze over. */
+@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: "Lotus Cijfers", "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 18px; line-height: 1.55; }
 ::selection { color: var(--white); background: var(--blue); }
 :focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; box-shadow: 0 0 0 2px var(--white); }

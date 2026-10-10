@@ -45,6 +45,8 @@ const indexable = !draft && isIndexableHost(Astro.url);
     {indexable && alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={absolute(alternates[0].href)} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
+    {/* De andere taalversies alvast ophalen zodra iemand naar de taalkeuze gaat. */}
+    {alternates.length > 0 && <script type="speculationrules" is:inline set:html={JSON.stringify({ prefetch: [{ where: { selector_matches: '.lang-switch a' }, eagerness: 'moderate' }] })} />}
   </head>
   <body class:list={{ 'plain-nav': plainNav }}>
     <a class="skip-link" href="#inhoud">{t.skipLink}</a>
@@ -112,6 +114,62 @@ const indexable = !draft && isIndexableHost(Astro.url);
       document.addEventListener('pointerdown', (event) => {
         if (nav?.dataset.menu === 'open' && !nav.contains(event.target as Node)) setMenu(false);
       });
+    </script>
+    <script is:inline>
+      // Van taal wisselen houdt je op dezelfde plek: we onthouden welk element bovenaan stond en
+      // scrollen er op de nieuwe pagina naartoe, vóór die getoond wordt. De pagina's in de drie
+      // talen hebben dezelfde opbouw, dus het n-de element in <main> is overal hetzelfde stuk.
+      (() => {
+        const KEY = 'lotus-lang-switch';
+        const elements = () => document.querySelectorAll('main *');
+        const read = () => {
+          try { return JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch { return null; }
+        };
+
+        document.querySelectorAll('.lang-switch a').forEach((link) =>
+          link.addEventListener('click', (event) => {
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            const nodes = elements();
+            let index = -1;
+            let offset = 0;
+            if (window.scrollY > 10) {
+              for (let i = 0; i < nodes.length; i += 1) {
+                const box = nodes[i].getBoundingClientRect();
+                if (box.height > 0 && box.top >= 0) {
+                  index = i;
+                  offset = box.top;
+                  break;
+                }
+              }
+            }
+            try { sessionStorage.setItem(KEY, JSON.stringify({ to: link.pathname, index, offset, at: Date.now() })); } catch {}
+          }),
+        );
+
+        // Alleen een taalwissel krijgt de overvloeier; gewone links laden zoals altijd.
+        window.addEventListener('pageswap', (event) => {
+          if (event.viewTransition && !read()) event.viewTransition.skipTransition();
+        });
+
+        const saved = read();
+        try { sessionStorage.removeItem(KEY); } catch {}
+        if (!saved || saved.to !== location.pathname || Date.now() - saved.at > 15000 || saved.index < 0) return;
+        const restore = () => {
+          const target = elements()[saved.index];
+          if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - saved.offset, behavior: 'instant' });
+          return window.scrollY;
+        };
+        // Zodra de bezoeker zelf scrolt, laten we de positie met rust.
+        let touched = false;
+        const stop = () => { touched = true; };
+        ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((type) => window.addEventListener(type, stop, { once: true, passive: true }));
+        const again = () => { if (!touched) restore(); };
+        restore();
+        // Schuift de pagina nog (opmaak, lettertypes, foto's), dan volgen we even mee.
+        const observer = new ResizeObserver(again);
+        observer.observe(document.body);
+        window.setTimeout(() => observer.disconnect(), 2000);
+      })();
     </script>
   </body>
 </html>
