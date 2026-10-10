@@ -1,14 +1,18 @@
 ---
 import PublicLayout from '../layouts/PublicLayout.astro';
-import { loadDocuments } from '../lib/content';
+import { langFromPath, pathFor, strings } from '../lib/i18n';
+import { loadView } from '../lib/view';
 
-const docs = await loadDocuments(Astro.locals.draft ? 'draft' : 'published');
+// Na een rewrite (onbekende activiteit) telt het oorspronkelijke pad.
+const lang = langFromPath(Astro.originPathname);
+const view = await loadView(Astro.locals, lang);
+const t = strings(lang);
 Astro.response.status = 404;
 ---
-<PublicLayout docs={docs} title="Pagina niet gevonden — De Rode Lotus" description="Deze pagina bestaat niet (meer)." plainNav>
+<PublicLayout view={view} page={{ page: 'notFound' }} title={`${t.notFoundTitle} — De Rode Lotus`} description={t.notFoundDescription} plainNav>
   <section class="page-head not-found">
-    <h1>Deze pagina vinden we niet.</h1>
-    <p>Misschien is ze verhuisd of bestaat ze niet meer.</p>
-    <a class="button" href="/">Naar de startpagina</a>
+    <h1>{t.notFoundHeading}</h1>
+    <p>{t.notFoundText}</p>
+    <a class="button" href={pathFor(lang, { page: 'home' })}>{t.notFoundHome}</a>
   </section>
 </PublicLayout>

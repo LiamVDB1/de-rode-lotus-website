@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { fingerprint } from '../../lib/auth';
 import { clientIp, json, problem, sameOrigin } from '../../lib/http';
+import { fieldMessage, formMessage, LANGS, type Lang } from '../../lib/i18n';
 import { notifyNewVolunteer } from '../../lib/notify';
 import { ipScope, recordEvent, underLimit } from '../../lib/ratelimit';
 import { formatIssues, volunteerSchema } from '../../lib/schema';
@@ -10,15 +11,18 @@ import { verifyTurnstile } from '../../lib/turnstile';
 const MAX_BYTES = 16_000;
 
 export const POST: APIRoute = async ({ request, url }) => {
-  if (!sameOrigin(request)) return problem('Ongeldig verzoek.', 403);
-  if (Number(request.headers.get('Content-Length') ?? 0) > MAX_BYTES) return problem('Je bericht is te lang.', 413);
+  if (!sameOrigin(request)) return problem(formMessage('nl', 'invalid'), 403);
+  if (Number(request.headers.get('Content-Length') ?? 0) > MAX_BYTES) return problem(formMessage('nl', 'tooLong'), 413);
 
   let form: FormData;
   try {
     form = await request.formData();
   } catch {
-    return problem('Ongeldig formulier.');
+    return problem(formMessage('nl', 'badForm'));
   }
+  const requested = String(form.get('lang') ?? 'nl');
+  const lang: Lang = (LANGS as readonly string[]).includes(requested) ? (requested as Lang) : 'nl';
+  const say = (key: string) => formMessage(lang, key);
 
   // Honeypot: echte bezoekers zien dit veld niet.
   if (String(form.get('website') ?? '') !== '') return json({ ok: true });
@@ -29,7 +33,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     { bucket: ipKey, max: 5, windowSeconds: 3600 },
     { bucket: 'vrijwilliger:alle', max: 60, windowSeconds: 3600 },
   ]);
-  if (!allowed) return problem('Er kwamen te veel aanmeldingen binnen. Probeer het later opnieuw of bel ons.', 429);
+  if (!allowed) return problem(say('rateLimited'), 429);
 
   const parsed = volunteerSchema.safeParse({
     name: form.get('name') ?? '',
@@ -39,10 +43,13 @@ export const POST: APIRoute = async ({ request, url }) => {
     message: form.get('message') ?? '',
     consent: form.get('consent') ?? '',
   });
-  if (!parsed.success) return problem('Kijk de gemarkeerde velden na.', 422, { issues: formatIssues(parsed.error) });
+  if (!parsed.success) {
+    const issues = formatIssues(parsed.error).map((issue) => ({ path: issue.path, message: fieldMessage(lang, issue.path, issue.message) }));
+    return problem(say('checkFields'), 422, { issues });
+  }
 
   const human = await verifyTurnstile(String(form.get('cf-turnstile-response') ?? ''), ip, url);
-  if (!human) return problem('De controle tegen spam lukte niet. Probeer opnieuw.', 400);
+  if (!human) return problem(say('spam'), 400);
 
   const { consent: _consent, ...submission } = parsed.data;
   await env.DB.prepare(

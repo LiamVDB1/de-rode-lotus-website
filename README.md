@@ -6,7 +6,8 @@ De website van [De Rode Lotus](https://derodelotus.com), een buurtorganisatie me
 
 - **Publieke site**: startpagina, een pagina per activiteit, de vrijwilligerspagina met aanmeldformulier, en doneren via overschrijving (IBAN met EPC-QR-code).
 - **Beheer** (`/beheer`): één beheerdersaccount. Teksten, uren, activiteiten, vrijwilligers, veelgestelde vragen, mededeling en doneergegevens worden als ontwerp bewaard en pas zichtbaar na **Publiceren**. Foto’s worden verkleind en in R2 bewaard. Aanmeldingen van nieuwe vrijwilligers komen in de inbox.
-- **Opslag**: Cloudflare D1 voor inhoud, foto-gegevens en aanmeldingen; R2 voor geüploade foto’s. De JSON-bestanden in `src/data/` zijn de standaardinhoud zolang er nog niets gepubliceerd is.
+- **Talen**: Nederlands op `/`, Engels op `/en`, Frans op `/fr` (`src/lib/i18n.ts` voor vaste teksten en webadressen). De inhoud uit het beheer wordt bij **Publiceren** vertaald met Workers AI (`src/lib/translate.ts`) en bewaard als vertaalgeheugen in D1: één vertaling per Nederlandse tekst. Verbeteringen onder **Beheer → Vertalingen** blijven staan tot de Nederlandse tekst verandert; ontbrekende vertalingen vallen terug op het Nederlands.
+- **Opslag**: Cloudflare D1 voor inhoud, vertalingen, foto-gegevens en aanmeldingen; R2 voor geüploade foto’s. De JSON-bestanden in `src/data/` zijn de standaardinhoud zolang er nog niets gepubliceerd is.
 - **Beveiliging**: wachtwoord als PBKDF2-hash, ondertekende sessiecookie, Content-Security-Policy, Cloudflare Turnstile en rate limiting op het formulier. Zie `src/middleware.ts` en `src/lib/`.
 
 ## Lokaal werken

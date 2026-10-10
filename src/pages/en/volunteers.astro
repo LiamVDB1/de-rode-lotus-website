@@ -1,0 +1,7 @@
+---
+import VolunteersPage from '../../components/pages/VolunteersPage.astro';
+import { loadView } from '../../lib/view';
+
+const view = await loadView(Astro.locals, 'en');
+---
+<VolunteersPage view={view} />

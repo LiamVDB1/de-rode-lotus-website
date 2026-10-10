@@ -5,6 +5,7 @@ declare namespace Cloudflare {
     DB: D1Database;
     MEDIA: R2Bucket;
     ASSETS: Fetcher;
+    AI: Ai;
     SITE_ORIGIN: string;
     COOKIE_DOMAIN: string;
     TURNSTILE_SITE_KEY: string;

@@ -1,37 +1,39 @@
 ---
 import type { Documents } from '../lib/schema';
 import { epcSvg, formatIban } from '../lib/epc';
+import { strings, type Lang } from '../lib/i18n';
 
-interface Props { donate: Documents['donate'] }
-const { donate } = Astro.props;
+interface Props { donate: Documents['donate']; lang: Lang }
+const { donate, lang } = Astro.props;
+const t = strings(lang);
 
 const base = { beneficiary: donate.beneficiary, iban: donate.iban, bic: donate.bic, remittance: donate.remittance };
-const options = [...donate.amounts.map((amount) => ({ amount, label: `€ ${amount}` })), { amount: undefined, label: 'Ander bedrag' }];
+const options = [...donate.amounts.map((amount) => ({ amount, label: `€ ${amount}` })), { amount: undefined, label: t.donateOther }];
 const codes = await Promise.all(options.map(async (option) => ({ ...option, svg: await epcSvg({ ...base, amount: option.amount }) })));
 const iban = formatIban(donate.iban);
 ---
 <dialog class="donate-dialog" id="doneren" aria-labelledby="doneren-titel">
   <div class="dialog-head">
     <h2 id="doneren-titel">{donate.title}</h2>
-    <button class="dialog-close" type="button" data-close aria-label="Sluiten"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg></button>
+    <button class="dialog-close" type="button" data-close aria-label={t.close}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg></button>
   </div>
   <p class="dialog-intro">{donate.intro}</p>
 
   <fieldset class="amounts">
-    <legend>Kies een bedrag</legend>
+    <legend>{t.donateAmount}</legend>
     {codes.map((code, index) => <label class="amount-chip"><input type="radio" name="bedrag" value={String(index)} checked={index === 0} /><span>{code.label}</span></label>)}
   </fieldset>
 
   <div class="donate-grid">
     <div class="qr-box">
       {codes.map((code, index) => <div class="qr" data-qr={String(index)} hidden={index !== 0} set:html={code.svg} />)}
-      <p>Scan met je bankapp</p>
+      <p>{t.donateScan}</p>
     </div>
     <dl class="bank-details">
-      <div><dt>Rekeningnummer</dt><dd><span class="iban">{iban}</span><button class="copy" type="button" data-copy={donate.iban}><span data-label>Kopieer</span></button></dd></div>
-      <div><dt>Op naam van</dt><dd>{donate.beneficiary}</dd></div>
+      <div><dt>{t.donateIban}</dt><dd><span class="iban">{iban}</span><button class="copy" type="button" data-copy={donate.iban} data-label-copy={t.copy} data-copied={t.copied} data-manual={t.copyManual}><span data-label>{t.copy}</span></button></dd></div>
+      <div><dt>{t.donateBeneficiary}</dt><dd>{donate.beneficiary}</dd></div>
       {donate.bic && <div><dt>BIC</dt><dd>{donate.bic}</dd></div>}
-      {donate.remittance && <div><dt>Mededeling</dt><dd>{donate.remittance}</dd></div>}
+      {donate.remittance && <div><dt>{t.donateReference}</dt><dd>{donate.remittance}</dd></div>}
     </dl>
   </div>
 </dialog>
@@ -59,11 +61,11 @@ const iban = formatIban(donate.iban);
       const label = copy.querySelector<HTMLElement>('[data-label]');
       try {
         await navigator.clipboard.writeText(copy.dataset.copy ?? '');
-        if (label) label.textContent = 'Gekopieerd';
+        if (label) label.textContent = copy.dataset.copied ?? '';
       } catch {
-        if (label) label.textContent = 'Selecteer en kopieer';
+        if (label) label.textContent = copy.dataset.manual ?? '';
       }
-      setTimeout(() => label && (label.textContent = 'Kopieer'), 2500);
+      setTimeout(() => label && (label.textContent = copy.dataset.labelCopy ?? ''), 2500);
     });
   }
 </script>

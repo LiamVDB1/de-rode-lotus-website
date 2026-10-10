@@ -11,6 +11,14 @@ Ga naar **derodelotus.com/beheer** en meld je aan met het beheerderswachtwoord. 
 3. Bekijk het resultaat met het voorbeeld.
 4. Klik op **Publiceren**. Vanaf dan staat de wijziging op de website.
 
+## Engels en Frans
+
+De website bestaat ook in het Engels (derodelotus.com/en) en het Frans (derodelotus.com/fr). Je schrijft alles in het Nederlands. Bij **Publiceren** worden nieuwe en gewijzigde teksten automatisch vertaald; dat duurt enkele seconden.
+
+Onder **Vertalingen** zie je elke tekst naast zijn vertaling. Klopt een vertaling niet, verbeter ze en klik op **Opslaan**: de verbetering staat meteen online en blijft staan zolang je de Nederlandse tekst niet aanpast. Pas je die wel aan, dan wordt de nieuwe tekst opnieuw automatisch vertaald. Lukte het vertalen eens niet, dan staat die tekst voorlopig in het Nederlands; klik dan op **Ontbrekende vertalen**.
+
+Namen, adressen, telefoonnummers en de rekeninggegevens worden niet vertaald.
+
 ## Foto’s
 
 Onder **Foto’s** sleep je foto’s in de bibliotheek. Ze worden automatisch verkleind. Geef elke foto een korte beschrijving (“Twee vrijwilligers sorteren kleding”): dat helpt mensen met een schermlezer. Daarna kies je de foto bij een activiteit of vrijwilliger.

@@ -1,0 +1,145 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { loadDocuments } from '../../lib/content';
+import { editors } from '../../lib/editor-spec';
+import { isTargetLang, pathFor, TARGET_LANG_LABELS, TARGET_LANGS, type TargetLang } from '../../lib/i18n';
+import { MAX_TRANSLATION, reviewList } from '../../lib/translate';
+
+const requested = Astro.url.searchParams.get('taal');
+const lang: TargetLang = isTargetLang(requested) ? requested : 'en';
+const groups = await reviewList(await loadDocuments('published'), lang);
+const items = groups.flatMap((group) => group.items);
+const missing = items.filter((item) => !item.translation).length;
+const websiteName = { en: 'Engelse', fr: 'Franse' }[lang];
+const statusLabel = { auto: 'Automatisch', manual: 'Verbeterd', missing: 'Nog niet vertaald' } as const;
+// Vertalingen zijn vaak wat langer dan het Nederlands.
+const rows = (text: string) => Math.min(14, Math.max(2, Math.ceil(text.length / 45) + (text.match(/\n/g)?.length ?? 0) + 1));
+---
+<AdminLayout title="Vertalingen" active="/beheer/vertalingen">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Website in het Engels en Frans</p>
+      <h1>Vertalingen</h1>
+      <p class="lead">Je schrijft alles in het Nederlands. Bij <strong>Publiceren</strong> worden nieuwe en gewijzigde teksten automatisch vertaald. Hier kan je die vertalingen nakijken en verbeteren. Een verbetering blijft staan tot je de Nederlandse tekst aanpast.</p>
+    </div>
+  </header>
+
+  <div class="translation-bar">
+    <div class="filters" role="group" aria-label="Taal">
+      {TARGET_LANGS.map((code) => <a class="chip" href={`?taal=${code}`} aria-current={code === lang ? 'page' : undefined}>{TARGET_LANG_LABELS[code]}</a>)}
+    </div>
+    <p class="translation-summary">
+      {missing > 0
+        ? <><strong>{missing} van {items.length}</strong> teksten nog niet vertaald; die staan voorlopig in het Nederlands.</>
+        : <>Alle {items.length} teksten zijn vertaald.</>}
+    </p>
+    <div class="head-actions">
+      {missing > 0 && <button class="btn btn-primary btn-small" type="button" data-fill-missing>Ontbrekende vertalen</button>}
+      <a class="btn btn-ghost btn-small" href={pathFor(lang, { page: 'home' })} target="_blank" rel="noopener">Bekijk de {websiteName} website ↗</a>
+    </div>
+  </div>
+
+  <p class="help">Dit zijn de teksten die nu online staan. Wat je nog niet gepubliceerd hebt, verschijnt hier na het publiceren.</p>
+
+  {groups.map((group) => (
+    <section class="card group translation-group" aria-labelledby={`t-${group.key}`}>
+      <h2 class="group-title" id={`t-${group.key}`}>{editors[group.key].title}</h2>
+      <ul class="translation-list">
+        {group.items.map((item) => {
+          const state = item.translation?.origin ?? 'missing';
+          const text = item.translation?.text ?? '';
+          return (
+            <li class="translation-row" data-source={item.source} data-state={state}>
+              <div class="translation-source" lang="nl">
+                <span class="translation-lang">Nederlands</span>
+                <p>{item.source}</p>
+              </div>
+              <div class="translation-target">
+                <label class="translation-lang" for={`t-${lang}-${item.hash}`}>{TARGET_LANG_LABELS[lang]}</label>
+                <textarea id={`t-${lang}-${item.hash}`} lang={lang} rows={rows(item.source)} maxlength={MAX_TRANSLATION} placeholder="Nog niet vertaald" data-saved={text}>{text}</textarea>
+                <div class="translation-actions">
+                  <span class="pill" data-pill>{statusLabel[state]}</span>
+                  <button class="btn btn-primary btn-small" type="button" data-save hidden>Opslaan</button>
+                  <button class="btn-link" type="button" data-auto>{state === 'missing' ? 'Automatisch vertalen' : 'Opnieuw automatisch vertalen'}</button>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  ))}
+
+  <script>
+    import { api, toast } from '../../scripts/admin/api';
+
+    const params = new URLSearchParams(location.search);
+    const lang = params.get('taal') === 'fr' ? 'fr' : 'en';
+    const labels: Record<string, string> = { auto: 'Automatisch', manual: 'Verbeterd', missing: 'Nog niet vertaald' };
+
+    document.querySelectorAll<HTMLLIElement>('.translation-row').forEach((row) => {
+      const source = row.dataset.source ?? '';
+      const textarea = row.querySelector('textarea');
+      const save = row.querySelector<HTMLButtonElement>('[data-save]');
+      const auto = row.querySelector<HTMLButtonElement>('[data-auto]');
+      const pill = row.querySelector<HTMLElement>('[data-pill]');
+      if (!textarea || !save || !auto || !pill) return;
+
+      const settle = (text: string, state: string) => {
+        textarea.value = text;
+        textarea.dataset.saved = text;
+        row.dataset.state = state;
+        pill.textContent = labels[state] ?? '';
+        auto.textContent = 'Opnieuw automatisch vertalen';
+        save.hidden = true;
+      };
+      textarea.addEventListener('input', () => {
+        save.hidden = textarea.value === textarea.dataset.saved;
+        save.disabled = textarea.value.trim() === '';
+      });
+
+      save.addEventListener('click', async () => {
+        save.disabled = true;
+        const result = await api<{ text: string; origin: string }>('PUT', '/beheer/api/vertalingen', { lang, source, text: textarea.value });
+        save.disabled = false;
+        if (!result.ok) return;
+        settle(result.text, result.origin);
+        toast('Vertaling opgeslagen. Ze staat meteen op de website.', 'success');
+      });
+
+      auto.addEventListener('click', async () => {
+        if (row.dataset.state === 'manual' && !window.confirm('Je verbetering vervangen door een nieuwe automatische vertaling?')) return;
+        auto.disabled = true;
+        textarea.setAttribute('aria-busy', 'true');
+        const result = await api<{ text: string; origin: string }>('PUT', '/beheer/api/vertalingen', { lang, source });
+        auto.disabled = false;
+        textarea.removeAttribute('aria-busy');
+        if (!result.ok) return;
+        settle(result.text, result.origin);
+        toast('Opnieuw vertaald.', 'success');
+      });
+    });
+
+    document.querySelector<HTMLButtonElement>('[data-fill-missing]')?.addEventListener('click', async (event) => {
+      const button = event.currentTarget as HTMLButtonElement;
+      button.disabled = true;
+      button.textContent = 'Bezig met vertalen…';
+      const result = await api<{ translated: number; failed: number }>('POST', '/beheer/api/vertalingen/aanvullen');
+      if (!result.ok) {
+        button.disabled = false;
+        button.textContent = 'Ontbrekende vertalen';
+        return;
+      }
+      sessionStorage.setItem('lotus-toast', result.failed > 0
+        ? `${result.translated} teksten vertaald, ${result.failed} nog niet. Probeer het straks nog eens.`
+        : `${result.translated} teksten vertaald.`);
+      location.reload();
+    });
+
+    // Niet weggaan met een verbetering die nog niet opgeslagen is.
+    window.addEventListener('beforeunload', (event) => {
+      const unsaved = [...document.querySelectorAll<HTMLTextAreaElement>('.translation-row textarea')].some((area) => area.value !== area.dataset.saved);
+      if (unsaved) event.preventDefault();
+    });
+  </script>
+</AdminLayout>

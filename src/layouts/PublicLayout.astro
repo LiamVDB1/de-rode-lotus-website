@@ -5,19 +5,28 @@ import '../styles/site.css';
 import '../styles/pages.css';
 import Logo from '../components/Logo.astro';
 import DonateDialog from '../components/DonateDialog.astro';
-import type { Documents } from '../lib/schema';
+import { LANG_NAMES, LANGS, pathFor, strings, type Lang, type Page } from '../lib/i18n';
 import { phoneHref } from '../lib/site';
 import { isIndexableHost } from '../lib/http';
+import type { View } from '../lib/view';
 
 interface Props {
-  docs: Documents;
+  view: View;
+  /** Deze pagina, om naar dezelfde pagina in een andere taal te linken. */
+  page: Page;
   title: string;
   description: string;
   /** Pagina's zonder donkere hero krijgen een effen menubalk. */
   plainNav?: boolean;
 }
-const { docs, title, description, plainNav = false } = Astro.props;
+const { view, page, title, description, plainNav = false } = Astro.props;
+const { docs, lang } = view;
+const t = strings(lang);
 const { practical, donate } = docs;
+const home = pathFor(lang, { page: 'home' });
+const anchor = (id: string) => `${home === '/' ? '' : home}/#${id}`;
+const alternates = page.page === 'notFound' ? [] : LANGS.map((code: Lang) => ({ code, href: pathFor(code, page) }));
+const absolute = (path: string) => new URL(path, Astro.url.origin).toString();
 const emailHref = `mailto:${encodeURIComponent(practical.email)}`;
 const phoneLink = phoneHref(practical.phoneInternational);
 const donateDialog = donate.enabled && donate.iban !== '';
@@ -25,34 +34,39 @@ const draft = Astro.locals.draft;
 const indexable = !draft && isIndexableHost(Astro.url);
 ---
 <!doctype html>
-<html lang="nl">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#173252" />
     <meta name="description" content={description} />
     {indexable ? <link rel="canonical" href={new URL(Astro.url.pathname, Astro.url.origin).toString()} /> : <meta name="robots" content="noindex, nofollow" />}
+    {indexable && alternates.map((alternate) => <link rel="alternate" hreflang={alternate.code} href={absolute(alternate.href)} />)}
+    {indexable && alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={absolute(alternates[0].href)} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
   </head>
   <body class:list={{ 'plain-nav': plainNav }}>
-    <a class="skip-link" href="#inhoud">Ga naar de inhoud</a>
-    {draft && <div class="draft-bar" role="status"><span><strong>Voorbeeld</strong> · je ziet ook wijzigingen die nog niet gepubliceerd zijn.</span><a href="/beheer">Terug naar beheer</a>{!Astro.url.hostname.startsWith('preview.') && <form method="post" action="/beheer/voorbeeld"><input type="hidden" name="aan" value="0" /><input type="hidden" name="naar" value={Astro.url.pathname} /><button type="submit">Voorbeeld uitzetten</button></form>}</div>}
+    <a class="skip-link" href="#inhoud">{t.skipLink}</a>
+    {draft && <div class="draft-bar" role="status"><span><strong>{t.draftLabel}</strong> · {t.draftBar}</span><a href="/beheer">{t.draftBack}</a>{!Astro.url.hostname.startsWith('preview.') && <form method="post" action="/beheer/voorbeeld"><input type="hidden" name="aan" value="0" /><input type="hidden" name="naar" value={Astro.url.pathname} /><button type="submit">{t.draftOff}</button></form>}</div>}
     <div class="nav-wrap">
-      <header class="site-nav" data-menu="closed" aria-label="Hoofdnavigatie">
-        <a class="brand" href="/" aria-label="De Rode Lotus, naar de startpagina">
+      <header class="site-nav" data-menu="closed" aria-label={t.mainNav}>
+        <a class="brand" href={home} aria-label={t.homeLabel}>
           <Logo id="nav-logo" />
           <strong>De Rode Lotus</strong>
         </a>
-        <nav class="nav-links" id="primary-menu" aria-label="Hoofdmenu">
-          <a href="/#wat-we-doen">Wat we doen</a>
-          <a href="/#praktisch">Praktisch</a>
-          <a href="/vrijwilligers">Vrijwilligers</a>
-          <a href="/#vragen">Vragen</a>
-          {donateDialog && <a class="donate" href="#doneren" data-open-donate>Doneer</a>}
-          <a class="contact" href={emailHref}>Contact</a>
+        <nav class="nav-links" id="primary-menu" aria-label={t.mainMenu} data-label-open={t.menuOpen} data-label-close={t.menuClose}>
+          <a href={anchor('wat-we-doen')}>{t.navServices}</a>
+          <a href={anchor('praktisch')}>{t.navPractical}</a>
+          <a href={pathFor(lang, { page: 'volunteers' })}>{t.navVolunteers}</a>
+          <a href={anchor('vragen')}>{t.navFaq}</a>
+          {donateDialog && <a class="donate" href="#doneren" data-open-donate>{t.navDonate}</a>}
+          <a class="contact" href={emailHref}>{t.navContact}</a>
+          {alternates.length > 0 && <ul class="lang-switch" aria-label={t.languages}>
+            {alternates.map((alternate) => <li><a href={alternate.href} hreflang={alternate.code} lang={alternate.code} aria-label={LANG_NAMES[alternate.code]} aria-current={alternate.code === lang ? 'true' : undefined}>{alternate.code.toUpperCase()}</a></li>)}
+          </ul>}
         </nav>
-        <button class="mobile-menu" type="button" aria-expanded="false" aria-controls="primary-menu" aria-label="Menu openen">
+        <button class="mobile-menu" type="button" aria-expanded="false" aria-controls="primary-menu" aria-label={t.menuOpen}>
           <svg class="menu-open-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           <svg class="menu-close-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
@@ -68,15 +82,15 @@ const indexable = !draft && isIndexableHost(Astro.url);
           <div><strong>De Rode Lotus</strong><p>{practical.street} · {practical.postalCode} {practical.city} · <a href={phoneLink}>{practical.phoneDisplay}</a> · <a href={emailHref}>{practical.email}</a></p></div>
         </div>
         <div class="footer-social">
-          {donateDialog && <a href="#doneren" data-open-donate><span>Doe een gift</span></a>}
+          {donateDialog && <a href="#doneren" data-open-donate><span>{t.footerGift}</span></a>}
           <a href={practical.facebookUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V10.5H7.8v3h2.6V21h3.1Z" fill="currentColor"/></svg><span>Facebook</span></a>
           {practical.instagramUrl && <a href={practical.instagramUrl} target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></svg><span>Instagram</span></a>}
         </div>
       </div>
-      <p class="footer-bottom">vzw De Rode Lotus · Weggeefwinkel en ontmoetingsplek in de Brugse Poort</p>
+      <p class="footer-bottom">{t.footerTagline}</p>
     </footer>
 
-    {donateDialog && <DonateDialog donate={donate} />}
+    {donateDialog && <DonateDialog donate={donate} lang={lang} />}
 
     <script>
       const nav = document.querySelector<HTMLElement>('.site-nav');
@@ -85,7 +99,8 @@ const indexable = !draft && isIndexableHost(Astro.url);
         if (!nav || !menuButton) return;
         nav.dataset.menu = open ? 'open' : 'closed';
         menuButton.setAttribute('aria-expanded', String(open));
-        menuButton.setAttribute('aria-label', open ? 'Menu sluiten' : 'Menu openen');
+        const labels = document.querySelector<HTMLElement>('#primary-menu')?.dataset;
+        menuButton.setAttribute('aria-label', (open ? labels?.labelClose : labels?.labelOpen) ?? '');
       };
       menuButton?.addEventListener('click', () => setMenu(nav?.dataset.menu !== 'open'));
       nav?.querySelectorAll<HTMLAnchorElement>('.nav-links a').forEach((link) => link.addEventListener('click', () => setMenu(false)));

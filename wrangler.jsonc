@@ -27,6 +27,8 @@
   "r2_buckets": [
     { "binding": "MEDIA", "bucket_name": "de-rode-lotus-media" }
   ],
+  // Workers AI vertaalt de inhoud naar het Engels en Frans bij het publiceren.
+  "ai": { "binding": "AI", "remote": true },
   "env": {
     "staging": {
       "name": "de-rode-lotus-staging",
@@ -44,7 +46,8 @@
       ],
       "r2_buckets": [
         { "binding": "MEDIA", "bucket_name": "de-rode-lotus-media-staging" }
-      ]
+      ],
+      "ai": { "binding": "AI", "remote": true }
     }
   }
 }

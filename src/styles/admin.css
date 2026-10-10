@@ -277,7 +277,27 @@ html:has(dialog[open]) { overflow: hidden; }
 /* Inbox */
 .filters { display: flex; gap: .4rem; margin-bottom: 1rem; }
 .chip { min-height: 38px; padding: .35rem .9rem; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--white); cursor: pointer; font-weight: 700; font-size: .92rem; }
-.chip[aria-pressed="true"] { border-color: var(--blue-dark); color: var(--white); background: var(--blue-dark); }
+.chip[aria-pressed="true"], a.chip[aria-current] { border-color: var(--blue-dark); color: var(--white); background: var(--blue-dark); }
+a.chip { display: inline-flex; align-items: center; color: var(--blue-dark); text-decoration: none; }
+
+/* Vertalingen */
+.translation-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin-bottom: .6rem; }
+.translation-bar .filters { margin: 0; }
+.translation-summary { flex: 1 1 16rem; margin: 0; color: var(--muted); }
+.translation-group { margin-top: 1.1rem; }
+.translation-group h2 { margin: 0 0 .4rem; font-size: 1.1rem; }
+.translation-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.translation-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--line); }
+.translation-row:first-child { border-top: 0; }
+.translation-lang { display: block; margin-bottom: .3rem; color: var(--muted); font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.translation-source p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.translation-target textarea { resize: vertical; }
+.translation-target textarea[aria-busy="true"] { opacity: .55; }
+.translation-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .45rem; }
+.translation-row[data-state="missing"] textarea { border-color: var(--gold); background: var(--gold-soft); }
+.translation-row[data-state="missing"] [data-pill] { color: #6a4a00; background: var(--gold-soft); }
+.translation-row[data-state="manual"] [data-pill] { color: var(--green); background: var(--green-soft); }
+@media (max-width: 720px) { .translation-row { grid-template-columns: minmax(0, 1fr); gap: .6rem; } }
 .inbox-list { display: grid; gap: .9rem; margin: 0; padding: 0; list-style: none; }
 .submission { padding: 1.1rem 1.2rem; }
 .submission[data-status="afgehandeld"] { opacity: .75; }

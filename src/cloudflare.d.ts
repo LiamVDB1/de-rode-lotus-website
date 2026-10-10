@@ -48,6 +48,10 @@ interface Fetcher {
   fetch(input: Request | string | URL, init?: RequestInit): Promise<Response>;
 }
 
+interface Ai {
+  run(model: string, input: Record<string, unknown>): Promise<unknown>;
+}
+
 declare module 'cloudflare:workers' {
   export const env: Cloudflare.Env;
 }

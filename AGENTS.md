@@ -10,7 +10,7 @@ Website for De Rode Lotus, a neighbourhood organisation. Astro on Cloudflare Wor
 
 ## Rules
 
-- User-facing text is Dutch (Belgian). Keep the tone warm and plain; no marketing language.
+- User-facing text is Dutch (Belgian), with English and French versions under `/en` and `/fr`. Fixed UI strings live in `src/lib/i18n.ts` (add every new string in all three languages); CMS content is machine-translated on publish (`src/lib/translate.ts`). The admin (`/beheer`) stays Dutch only. Keep the tone warm and plain; no marketing language.
 - Never commit secrets. `.dev.vars` is local only; production secrets go through `wrangler secret put`.
 - The organisation approved content and photo rights on 2026-10-01 (`src/data/publication.json`). Only the apex domain is indexable; keep www, preview, staging, admin and draft views `noindex`.
 - Only use photos whose origin is recorded in `PHOTO-SOURCES.md`.

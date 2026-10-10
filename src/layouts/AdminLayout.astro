@@ -23,6 +23,7 @@ const icons: Record<string, string> = {
   overzicht: 'M3 10.5 10 4l7 6.5V17h-4.5v-4h-5v4H3Z',
   fotos: 'M3 5.5h14v10H3Zm2.5 8 3-3.5 2.2 2.5 1.8-2 3 3M13 8.2a1 1 0 1 1-2 0 1 1 0 0 1 2 0',
   inbox: 'M3 11h4l1.5 2.5h3L13 11h4M3 11l2.2-6h9.6L17 11v5H3Z',
+  vertalingen: 'M3 5h8M7 3.5V5m2.2 0C8.6 8.4 6.4 11 3.5 12.5M5.4 8c1 1.6 2.5 2.9 4.3 3.7M10.5 17l3.25-7.5L17 17m-5.3-2.5h4.1',
 };
 const navItem = (href: string) => (active === href ? 'page' : undefined);
 ---
@@ -53,6 +54,7 @@ const navItem = (href: string) => (active === href ? 'page' : undefined);
         ))}
         <p class="nav-label">Verder</p>
         <a href="/beheer/fotos" aria-current={navItem('/beheer/fotos')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d={icons.fotos} /></svg>Foto’s</a>
+        <a href="/beheer/vertalingen" aria-current={navItem('/beheer/vertalingen')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d={icons.vertalingen} /></svg>Vertalingen</a>
         <a href="/beheer/inbox" aria-current={navItem('/beheer/inbox')}><svg viewBox="0 0 20 20" aria-hidden="true"><path d={icons.inbox} /></svg>Inbox{newCount > 0 && <span class="nav-badge">{newCount}<span class="sr-only"> nieuw</span></span>}</a>
       </nav>
       <div class="sidebar-foot">
@@ -81,6 +83,7 @@ const navItem = (href: string) => (active === href ? 'page' : undefined);
         <h2 id="publish-title">Wijzigingen publiceren?</h2>
         <p>Deze onderdelen komen meteen op derodelotus.com:</p>
         <ul data-publish-list>{changed.map((status) => <li>{editors[status.key].title}</li>)}</ul>
+        <p class="help">Nieuwe en gewijzigde teksten worden daarna automatisch vertaald naar het Engels en Frans. Dat kan even duren.</p>
         <div class="confirm-actions">
           <button class="btn btn-ghost" value="cancel">Nog niet</button>
           <button class="btn btn-primary" value="ok">Publiceren</button>
@@ -113,9 +116,26 @@ const navItem = (href: string) => (active === href ? 'page' : undefined);
       );
       dialog?.addEventListener('close', async () => {
         if (dialog.returnValue !== 'ok') return;
-        const result = await api<{ published: number }>('POST', '/beheer/api/publiceren');
-        if (!result.ok) return;
-        sessionStorage.setItem('lotus-toast', 'Gepubliceerd. De wijzigingen staan nu op de website.');
+        const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-publish]')];
+        buttons.forEach((button) => {
+          button.disabled = true;
+          button.textContent = 'Publiceren en vertalen…';
+        });
+        const result = await api<{ published: number; translated: number; failed: number }>('POST', '/beheer/api/publiceren');
+        if (!result.ok) {
+          buttons.forEach((button) => {
+            button.disabled = false;
+            button.textContent = 'Publiceren';
+          });
+          return;
+        }
+        const translated = result.translated > 0 ? ` ${result.translated} ${result.translated === 1 ? 'tekst' : 'teksten'} vertaald.` : '';
+        sessionStorage.setItem('lotus-toast', `Gepubliceerd. De wijzigingen staan nu op de website.${translated}`);
+        if (result.failed !== 0) {
+          sessionStorage.setItem('lotus-toast-error', result.failed > 0
+            ? `${result.failed} ${result.failed === 1 ? 'tekst kon' : 'teksten konden'} nog niet vertaald worden en ${result.failed === 1 ? 'staat' : 'staan'} voorlopig in het Nederlands. Probeer het later via Vertalingen.`
+            : 'Vertalen lukte niet. De Engelse en Franse pagina’s tonen nieuwe teksten voorlopig in het Nederlands. Probeer het later via Vertalingen.');
+        }
         location.reload();
       });
 
@@ -142,6 +162,11 @@ const navItem = (href: string) => (active === href ? 'page' : undefined);
       if (pending) {
         sessionStorage.removeItem('lotus-toast');
         toast(pending, 'success');
+      }
+      const pendingError = sessionStorage.getItem('lotus-toast-error');
+      if (pendingError) {
+        sessionStorage.removeItem('lotus-toast-error');
+        toast(pendingError, 'error');
       }
     </script>
   </body>
